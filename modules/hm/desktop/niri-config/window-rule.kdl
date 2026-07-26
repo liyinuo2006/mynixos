@@ -1,0 +1,26 @@
+window-rule {
+    geometry-corner-radius 10 //圆角设计，尽显现代感。
+    clip-to-geometry true // 将窗口内容裁剪到圆角边界。
+    tiled-state true
+    draw-border-with-background false
+    background-effect {
+      blur true
+      xray false
+  }
+}
+
+window-rule {
+    match app-id="^google-chrome$"
+    open-maximized true
+    geometry-corner-radius 10 //圆角设计，尽显现代感。
+    clip-to-geometry true // 将窗口内容裁剪到圆角边界。
+    tiled-state true
+    draw-border-with-background false
+}
+
+/-window-rule {
+  match app-id="dev.noctalia.Noctalia"
+  open-floating true
+  default-column-width { fixed 1080; }
+  default-window-height { fixed 920; }
+}

@@ -4,7 +4,7 @@
 }:
 let
   wechat-wrapped = pkgs.symlinkJoin {
-    name = "wechat";
+    name = "${pkgs.wechat.pname or "wechat"}-${pkgs.wechat.version}";
     paths = [ pkgs.wechat ];
     nativeBuildInputs = [ pkgs.makeWrapper ];
     postBuild = ''
@@ -15,6 +15,21 @@ let
         --set QT_AUTO_SCREEN_SCALE_FACTOR 1
     '';
   };
+
+  wps-wrapped = pkgs.symlinkJoin {
+    name = "${pkgs.wpsoffice-cn.pname or "wpsoffice-cn"}-${pkgs.wpsoffice-cn.version}";
+    paths = [ pkgs.wpsoffice-cn ];
+    nativeBuildInputs = [ pkgs.makeWrapper ];
+    postBuild = ''
+      for bin in wps wpp et wpspdf; do
+        wrapProgram $out/bin/$bin \
+          --set QT_IM_MODULE fcitx \
+          --set GTK_IM_MODULE fcitx \
+          --set XMODIFIERS @im=fcitx
+      done
+    '';
+  };
+
 in
 
 {
@@ -23,7 +38,7 @@ in
     wechat-wrapped
     qq
 
-    wpsoffice-cn
+    wps-wrapped
     google-chrome
 
     nautilus

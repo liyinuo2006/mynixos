@@ -52,4 +52,9 @@
       disable_ai = true;
     };
   };
+
+  home.sessionVariables = {
+    EDITOR = "zeditor --wait";
+    VISUAL = "zeditor --wait";
+  };
 }

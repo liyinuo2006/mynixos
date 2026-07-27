@@ -114,7 +114,8 @@ spawn-at-startup "noctalia" //自动启动 Noctalia
 
 //include 导入
   include "binds.kdl"
-  include "noctalia.kdl"
   include "environment.kdl"
   include "window-rule.kdl"
   include "layer-rule.kdl"
+
+include "noctalia.kdl"

@@ -10,8 +10,7 @@ _: {
       ll = "ls -lh";
       la = "ls -lha";
       "..." = "cd ../..";
-      oc = "OPENCODE_ENABLE_EXA=1 OPENCODE_EXPERIMENTAL=true opencode";
-      mywps = "QT_QPA_PLATFORM=xcb QT_FONT_DPI=130 wps";
+      oc = "OPENCODE_ENABLE_EXA=1 OPENCODE_EXPERIMENTAL=true OPENCODE_EXPERIMENTAL_PARALLEL=true opencode";
     };
 
   };

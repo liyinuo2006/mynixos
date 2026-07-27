@@ -23,6 +23,8 @@ let
     postBuild = ''
       for bin in wps wpp et wpspdf; do
         wrapProgram $out/bin/$bin \
+          --set QT_QPA_PLATFORM xcb \
+          --set QT_FONT_DPI 144 \
           --set QT_IM_MODULE fcitx \
           --set GTK_IM_MODULE fcitx \
           --set XMODIFIERS @im=fcitx

@@ -37,14 +37,23 @@
       lsp = {
         nixd = {
           settings = {
-            # 让 nixd 也知道用 nixfmt（双保险）
+            nixpkgs = {
+              expr = "import (builtins.getFlake (builtins.toString ./.)).inputs.nixpkgs { }";
+            };
             formatting = {
               command = [ "nixfmt" ];
             };
-            # 可选：关掉一些较吵的诊断
-            # diagnostic = {
-            #   suppress = [ "sema-extra-with" ];
-            # };
+            options = {
+              nixos = {
+                expr = "(builtins.getFlake (builtins.toString ./.)).nixosConfigurations.mynixos.options";
+              };
+              "home-manager" = {
+                expr = "(builtins.getFlake (builtins.toString ./.)).nixosConfigurations.mynixos.options.home-manager.users.type.getSubOptions []";
+              };
+            };
+            diagnostic = {
+              suppress = [ "sema-extra-with" ];
+            };
           };
         };
       };

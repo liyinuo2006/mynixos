@@ -1,5 +1,6 @@
 {
   pkgs,
+  inputs,
   ...
 }:
 {
@@ -7,6 +8,8 @@
     enable = true;
     extraPackages = with pkgs; [
       uv
+      nixd
+      nixfmt
     ];
 
     settings = {
@@ -17,7 +20,35 @@
         question = "allow";
       };
       autoupdate = false;
-      lsp = false;
+      lsp = {
+        nixd = {
+          command = [ "nixd" ];
+          env = {
+            NIX_PATH = "nixpkgs=${inputs.nixpkgs}";
+          };
+          initialization = {
+            nixd = {
+              nixpkgs = {
+                expr = "import (builtins.getFlake (builtins.toString ./.)).inputs.nixpkgs { }";
+              };
+              formatting = {
+                command = [ "nixfmt" ];
+              };
+              options = {
+                nixos = {
+                  expr = "(builtins.getFlake (builtins.toString ./.)).nixosConfigurations.mynixos.options";
+                };
+                "home-manager" = {
+                  expr = "(builtins.getFlake (builtins.toString ./.)).nixosConfigurations.mynixos.options.home-manager.users.type.getSubOptions []";
+                };
+              };
+              diagnostic = {
+                suppress = [ "sema-extra-with" ];
+              };
+            };
+          };
+        };
+      };
       formatter = true;
     };
 

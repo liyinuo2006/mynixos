@@ -5,5 +5,6 @@
     ./terminal.nix
     ./zed-editor.nix
     ./git.nix
+    ./zen-browser.nix
   ];
 }

@@ -34,6 +34,16 @@
       #inputs.nixpkgs.follows = "nixpkgs";
     };
 
+    # Zen 浏览器(社区 flake)
+    # 使用 beta 分支:仅在 beta 渠道更新时移动,不受 main 分支每日 twilight 更新干扰
+    zen-browser = {
+      url = "github:0xc000022070/zen-browser-flake/beta";
+      inputs = {
+        nixpkgs.follows = "nixpkgs";
+        home-manager.follows = "home-manager";
+      };
+    };
+
   };
 
   outputs =

@@ -52,6 +52,7 @@ never bypass the module system.
 | `nixpkgs` | `NixOS/nixpkgs/nixos-unstable` |
 | `home-manager` | `nix-community/home-manager` (follows nixpkgs) |
 | `noctalia` | `noctalia-dev/noctalia/cachix` (theming) |
+| `zen-browser` | `0xc000022070/zen-browser-flake/beta` (browser; follows nixpkgs + home-manager) |
 
 Substituters configured for Tsinghua mirror, nix-community cachix, and
 noctalia cachix.

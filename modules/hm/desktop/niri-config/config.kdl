@@ -84,7 +84,7 @@ hotkey-overlay {
     skip-at-startup
 }
 
-prefer-no-csd
+//prefer-no-csd
 
 screenshot-path "~/Pictures/Screenshots/Screenshot from %Y-%m-%d %H-%M-%S.png"
 
@@ -117,5 +117,7 @@ spawn-at-startup "noctalia" //自动启动 Noctalia
   include "environment.kdl"
   include "window-rule.kdl"
   include "layer-rule.kdl"
+
+//include "noctalia.kdl"
 
 include "noctalia.kdl"

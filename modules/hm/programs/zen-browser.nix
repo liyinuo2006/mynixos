@@ -1,12 +1,56 @@
-# Zen 浏览器(0xc000022070/zen-browser-flake,beta 渠道)
-# 当前为最小配置:先在图形界面中调教,后续再逐步转为 Nix 声明
-# 声明式配置参考:https://github.com/0xc000022070/zen-browser-flake/tree/main/examples
-{ inputs, ... }:
+{
+  inputs,
+  pkgs,
+  ...
+}:
 {
   imports = [ inputs.zen-browser.homeModules.beta ];
 
   programs.zen-browser = {
     enable = true;
-    # setAsDefaultBrowser = true; # 需要设为默认浏览器时取消注释
+    setAsDefaultBrowser = true;
+
+    policies = {
+      AutofillAddressEnabled = true;
+      AutofillCreditCardEnabled = true;
+      DisableAppUpdate = true;
+      DisableFeedbackCommands = true;
+      DisableFirefoxStudies = true;
+      DisablePocket = true;
+      DisableTelemetry = true;
+      DontCheckDefaultBrowser = true;
+      NoDefaultBookmarks = true;
+      OfferToSaveLogins = true;
+      EnableTrackingProtection = {
+        Value = true;
+        Locked = false;
+        Cryptomining = true;
+        Fingerprinting = true;
+      };
+    };
+
+    nativeMessagingHosts = [ pkgs.firefoxpwa ];
+
+    languagePacks = [ "zh-CN" ];
+
+    enablePrivateDesktopEntry = true;
+
+    profiles.default = {
+
+      settings = {
+        "toolkit.legacyUserProfileCustomizations.stylesheets" = true; # 允许加载 userChrome.css
+        "devtools.chrome.enabled" = true; # 浏览器工具箱
+        "zen.workspaces.continue-where-left-off" = true;
+        "zen.view.compact.hide-tabbar" = true;
+        "zen.urlbar.behavior" = "float";
+        "zen.welcome-screen.seen" = true;
+      };
+
+      presets = {
+        betterfox.enable = true; # Betterfox 性能/隐私优化
+        # arkenfox.enable = true;   # arkenfox 严格隐私
+        # catppuccin = { enable = true; flavor = "Mocha"; accent = "Mauve"; };
+      };
+    };
   };
 }

@@ -45,6 +45,7 @@
       # ── 默认英文模式（启动时直接输英文） ──
       "switches/@0/reset": 1
       "switches/@0/states": [鹤，EN]
+      "grammar/language": wanxiang-lts-zh-hans
 
   '';
 

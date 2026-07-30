@@ -38,7 +38,7 @@ opencode 已在 `modules/hm/ai-agent/opencode.nix` 配置好:
   不要绕过 module system**。
 - `modules/nixos/`:`core/` 基础、`desktop/` niri、`programs/` clash/nautilus/packages、`dm/` LY。
 - `modules/hm/`:`desktop/` niri 配置+noctalia、`i18n/` fcitx5-rime-ice、
-  `programs/` fish/git/zed/packages、`ai-agent/` opencode。
+  `programs/` fish/git/zed/zen-browser/spotify/packages、`ai-agent/` opencode。
 
 ## 硬约定
 
@@ -67,7 +67,8 @@ opencode 已在 `modules/hm/ai-agent/opencode.nix` 配置好:
 ## Inputs 与缓存
 
 - `nixpkgs`: nixos-unstable;`home-manager` follows nixpkgs;
-  `zen-browser`(beta 分支)follows nixpkgs + home-manager;`noctalia` 走 cachix。
+  `zen-browser`(beta 分支)follows nixpkgs + home-manager;`noctalia` 走 cachix;
+  `spicetify-nix`(Gerg-L) follows nixpkgs,HM 模块见 `modules/hm/programs/spotify.nix`。
 - substituters:清华镜像 → cache.nixos.org → nix-community → noctalia(见 `flake.nix`)。
 - 常用命令(用户执行,AI 正常无须跑):
 

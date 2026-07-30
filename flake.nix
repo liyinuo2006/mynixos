@@ -44,6 +44,13 @@
       };
     };
 
+    # Spicetify(声明式包装 Spotify)
+    # 文档:https://wiki.nixos.org/wiki/Spicetify-Nix
+    spicetify-nix = {
+      url = "github:Gerg-L/spicetify-nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
   };
 
   outputs =

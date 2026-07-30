@@ -8,15 +8,102 @@
     type = "fcitx5";
     fcitx5 = {
       waylandFrontend = true;
-      #      settings.inputMethod = {
-
-      #      };
       addons = with pkgs; [
         (fcitx5-rime.override {
           rimeDataPkgs = with pkgs; [ rime-ice ];
         })
+
         fcitx5-gtk # GTK 应用支持
+
+        (catppuccin-fcitx5.override {
+          withRoundedCorners = true;
+        })
       ];
+
+      # 候选窗外观（对应 conf/classicui.conf）
+      settings.addons.classicui.globalSection = {
+        "Vertical Candidate List" = "False"; # 垂直候选列表
+        WheelForPaging = "True"; # 使用鼠标滚轮翻页
+        Font = "Sans 10";
+        MenuFont = "Sans 10";
+        TrayFont = "Sans Serif 10";
+        TrayOutlineColor = "#000000";
+        TrayTextColor = "#ffffff";
+        PreferTextIcon = "False";
+        ShowLayoutNameInIcon = "True";
+        UseInputMethodLanguageToDisplayText = "True";
+        Theme = "catppuccin-latte-mauve";
+        DarkTheme = "catppuccin-mocha-mauve";
+        UseDarkTheme = "True";
+        UseAccentColor = "True";
+        PerScreenDPI = "True";
+        ForceWaylandDPI = "0";
+        EnableFractionalScale = "True";
+      };
+
+      # rime addon（对应 conf/rime.conf）
+      settings.addons.rime.globalSection = {
+        PreeditMode = "Composing text";
+        InputState = "All";
+        PreeditCursorPositionAtBeginning = "True";
+        SwitchInputMethodBehavior = "Commit commit preview";
+      };
+
+      # waylandim（对应 conf/waylandim.conf）
+      settings.addons.waylandim.globalSection = {
+        DetectApplication = "True";
+        PreferKeyEvent = "True";
+        PersistentVirtualKeyboard = "False";
+      };
+
+      # xim（对应 conf/xim.conf）
+      settings.addons.xim.globalSection = {
+        UseOnTheSpot = "True";
+      };
+
+      # 全局行为与快捷键（对应 config）
+      settings.globalOptions = {
+        Hotkey = {
+          EnumerateWithTriggerKeys = "True";
+          EnumerateSkipFirst = "False";
+          ModifierOnlyKeyTimeout = "250";
+        };
+        # ini 中是 [Hotkey/TriggerKeys] 子段,字段名带斜杠提到顶层
+        "Hotkey/TriggerKeys" = {
+          "0" = "Control+space";
+        };
+        Behavior = {
+          ActiveByDefault = "False";
+          resetStateWhenFocusIn = "No";
+          ShareInputState = "No";
+          PreeditEnabledByDefault = "True";
+          ShowInputMethodInformation = "True";
+          showInputMethodInformationWhenFocusIn = "False";
+          CompactInputMethodInformation = "True";
+          ShowFirstInputMethodInformation = "True";
+          # DefaultPageSize = "5";
+          OverrideXkbOption = "False";
+          PreloadInputMethod = "True";
+          AllowInputMethodForPassword = "False";
+          ShowPreeditForPassword = "False";
+          # AutoSavePeriod = "30";
+        };
+      };
+
+      # 输入法语种/默认输入法（对应 profile）
+      settings.inputMethod = {
+        GroupOrder = {
+          "0" = "orion";
+        };
+        "Groups/0" = {
+          Name = "orion";
+          "Default Layout" = "us";
+          DefaultIM = "rime";
+        };
+        "Groups/0/Items/0" = {
+          Name = "rime";
+        };
+      };
     };
   };
 
@@ -32,12 +119,7 @@
 
       # ── 候选词数量 ──
       menu:
-        page_size: 9
-
-      # ── 禁掉 Ctrl+Shift+3/4 快捷键 ──
-      key_binder/bindings/+:
-        - { when: always, accept: "Control+Shift+3", send: noop }
-        - { when: always, accept: "Control+Shift+4", send: noop }
+        page_size: 8
 
   '';
   xdg.dataFile."fcitx5/rime/double_pinyin_flypy.custom.yaml".text = ''

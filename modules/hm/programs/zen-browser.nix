@@ -44,7 +44,16 @@
         "zen.view.compact.hide-tabbar" = true;
         "zen.urlbar.behavior" = "float";
         "zen.welcome-screen.seen" = true;
+        "zen.widget.linux.transparency" = false;
       };
+
+      # Noctalia 生成的主题（文件由 Noctalia 更新，这里只引用）
+      userChrome = ''
+        @import "/home/orion/.cache/noctalia/zen-browser/zen-userChrome.css";
+      '';
+      userContent = ''
+        @import "/home/orion/.cache/noctalia/zen-browser/zen-userContent.css";
+      '';
 
       presets = {
         betterfox.enable = true; # Betterfox 性能/隐私优化

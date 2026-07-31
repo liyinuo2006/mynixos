@@ -3,6 +3,7 @@ binds {
     Mod+T hotkey-overlay-title="Open a Terminal: kitty" { spawn "kitty" "-e" "fish" ; }
     Super+G repeat=false hotkey-overlay-title="google-chrome" { spawn "google-chrome"; }
     Super+E repeat=false hotkey-overlay-title="nautilus" { spawn "nautilus"; }
+    Mod+I repeat=false hotkey-overlay-title="noctalia setting" { spawn-sh "noctalia msg settings-open"; }
 
 // niri 的 windows 操作
     Mod+O repeat=false { toggle-overview; }

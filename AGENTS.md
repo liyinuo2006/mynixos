@@ -36,7 +36,7 @@ opencode 已在 `modules/hm/ai-agent/opencode.nix` 配置好:
   `home/orion/default.nix`(后者导入 `modules/hm/*`)。
 - 所有模块经各级 `default.nix` 聚合导入,**新增模块要挂到对应 `default.nix`,
   不要绕过 module system**。
-- `modules/nixos/`:`core/` 基础、`desktop/` niri、`programs/` clash/nautilus/packages、`dm/` LY。
+- `modules/nixos/`:`core/` 基础、`desktop/` niri、`programs/` clash/nautilus/packages/polkit、`dm/` LY。
 - `modules/hm/`:`desktop/` niri 配置+noctalia、`i18n/` fcitx5-rime-ice、
   `programs/` fish/git/zed/zen-browser/spotify/packages、`ai-agent/` opencode。
 

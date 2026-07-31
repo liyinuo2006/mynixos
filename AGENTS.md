@@ -67,6 +67,10 @@ opencode 已在 `modules/hm/ai-agent/opencode.nix` 配置好:
   不要在 nix 里重写。
 - **WeChat / WPS** 经 fcitx 中文环境变量包装(`modules/hm/programs/packages.nix`
   里的 `symlinkJoin` + `wrapProgram`),升级版本时只换包名,别动 wrap 逻辑。
+- **Xft.dpi 与屏幕 scale 绑定**:fcitx5 候选框在 XWayland 应用(微信/WPS)里按
+  `Xft.dpi` 渲染,当前固定 144 = 96 × 内屏 scale 1.5(`fcitx5-rime-ice.nix` 的
+  `xresources.properties` + niri `miscellaneous.kdl` 的 xrdb 加载)。改 niri
+  outputs.kdl 的 scale 时必须同步改这里,否则候选框又变小。
 - fish 别名 `oc` = `OPENCODE_ENABLE_EXA=1 OPENCODE_EXPERIMENTAL=true
   OPENCODE_EXPERIMENTAL_PARALLEL=true opencode`,排查 opencode 行为差异时先想到它。
 

@@ -25,7 +25,7 @@ window-rule {
   default-window-height { fixed 920; }
 }
 // 愚人节彩蛋:baba-is-float true 让窗口上下浮动,别开
- window-rule {
+/- window-rule {
      match is-floating=true
      baba-is-float true
  }

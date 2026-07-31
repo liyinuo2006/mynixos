@@ -9,6 +9,12 @@
 // 启动时执行 shell 命令(25.08+),整条字符串交给 sh
 // spawn-sh-at-startup "qs -c ~/source/qs/MyAwesomeShell"
 
+// 微信/WPS 走 XWayland,fcitx5 候选框在 X11 下按 Xft.dpi 渲染(默认 96),
+// 与屏幕 scale 1.5(等效 144 DPI)不一致导致候选框偏小。
+// XWayland 按需启动,这里重试等它就绪后灌入 ~/.Xresources(Xft.dpi: 144),
+// 成功后即退出;XWayland 重启的话重新登录一次即可。
+spawn-sh-at-startup "until xrdb -merge ~/.Xresources 2>/dev/null; do sleep 1; done"
+
 // 让应用省略客户端装饰(标题栏)。
 // 应用硬要 CSD 也会尊重;同时告知客户端处于平铺状态(去掉部分圆角)。
 // 已运行的应用不完全生效(标题栏不会去掉,这是 SDL2 的 workaround),
@@ -32,7 +38,7 @@ cursor {
     // 主题名和大小,同时设置 XCURSOR_THEME / XCURSOR_SIZE
     // 主题包由 home-manager 的 home.pointerCursor 装(cursor.nix),
     // 两边名字必须一致
-    xcursor-theme "phinger-cursors"
+    xcursor-theme "phinger-cursors-dark"
     xcursor-size 24
     // 打字时隐藏光标(0.1.10+)。注意:Wine 原生 Wayland 玩 FPS 可能
     // 视角乱跳,遇到就把这个关掉

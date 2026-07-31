@@ -131,4 +131,11 @@
 
   '';
 
+  # XWayland 应用(微信/WPS)里的 fcitx5 候选框按 Xft.dpi 渲染(默认 96),
+  # 而屏幕 scale 1.5 的 Wayland 侧等效 144 DPI,导致候选框明显偏小。
+  # 这里把 Xft.dpi 固定为 96 × 1.5 = 144(按内屏 scale 算,改 scale 要同步改);
+  # 文件由 niri 的 spawn-sh-at-startup(xrdb -merge)在 XWayland 就绪后加载。
+  xresources.properties = {
+    "Xft.dpi" = "144";
+  };
 }

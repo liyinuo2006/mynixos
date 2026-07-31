@@ -30,8 +30,10 @@ environment {
 // ---------- 光标 ----------
 cursor {
     // 主题名和大小,同时设置 XCURSOR_THEME / XCURSOR_SIZE
-    // xcursor-theme "breeze_cursors"
-    // xcursor-size 48
+    // 主题包由 home-manager 的 home.pointerCursor 装(cursor.nix),
+    // 两边名字必须一致
+    xcursor-theme "phinger-cursors"
+    xcursor-size 24
     // 打字时隐藏光标(0.1.10+)。注意:Wine 原生 Wayland 玩 FPS 可能
     // 视角乱跳,遇到就把这个关掉
     // hide-when-typing

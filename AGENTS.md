@@ -17,6 +17,11 @@ opencode 已在 `modules/hm/ai-agent/opencode.nix` 配置好:
   构建成本高,用户会自己构建测试。
 - 因此 AI 的职责只剩:**逻辑正确、风格一致、符合约定**。
 
+## 模型知识可能落后,NixOS 先搜后答
+
+- nixpkgs/NixOS 迭代快,模型训练知识滞后。凡涉及上游行为、模块选项、包版本、
+  stateVersion 等可能随时间变化的内容,**先用 websearch 搜最新资料**再下结论或动手。
+
 ## 用户是 NixOS 初学者
 
 - 非必要不给仓库引入复杂性(新抽象、新框架、过度参数化都算)。
@@ -36,9 +41,9 @@ opencode 已在 `modules/hm/ai-agent/opencode.nix` 配置好:
   `home/orion/default.nix`(后者导入 `modules/hm/*`)。
 - 所有模块经各级 `default.nix` 聚合导入,**新增模块要挂到对应 `default.nix`,
   不要绕过 module system**。
-- `modules/nixos/`:`core/` 基础、`desktop/` niri、`programs/` clash/nautilus/packages/polkit、`dm/` LY。
-- `modules/hm/`:`desktop/` niri 配置+noctalia、`i18n/` fcitx5-rime-ice、
-  `programs/` fish/git/zed/zen-browser/spotify/packages、`ai-agent/` opencode。
+- `modules/nixos/`:`core/` 基础、`wm/` niri、`programs/` clash/nautilus/packages/polkit、`dm/` LY。
+- `modules/hm/`:`desktop/` niri 配置+noctalia、`i18n/` fcitx5-rime-ice + language、
+  `programs/` fish/git/zed/zen-browser/spotify/terminal(kitty)/packages、`ai-agent/` opencode。
 
 ## 硬约定
 
@@ -56,8 +61,9 @@ opencode 已在 `modules/hm/ai-agent/opencode.nix` 配置好:
 
 - **不要动 opencode 自身配置**(`modules/hm/ai-agent/opencode.nix`)——
   本仓库就是用这个 opencode 打开的,改坏了会打断当前会话。
-- **niri 配置**用 `mkOutOfStoreSymlink` 软链到 `modules/hm/desktop/niri-config/*.kdl`
-  (见 `modules/hm/desktop/niri.nix`),改 niri 直接改那些 `.kdl` 源文件,
+- **niri 配置**目录 `modules/hm/desktop/niri-config/*.kdl`,经
+  `modules/hm/desktop/niri.nix` 的 `xdg.configFile` 整体挂到 `~/.config/niri`
+  (整个目录原样带入,含 `test/` 子目录)。改 niri 直接改那些 `.kdl` 源文件,
   不要在 nix 里重写。
 - **WeChat / WPS** 经 fcitx 中文环境变量包装(`modules/hm/programs/packages.nix`
   里的 `symlinkJoin` + `wrapProgram`),升级版本时只换包名,别动 wrap 逻辑。

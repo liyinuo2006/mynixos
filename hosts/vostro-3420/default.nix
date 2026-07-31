@@ -8,6 +8,7 @@
     ../../modules/nixos/core
     ../../modules/nixos/programs
     ../../modules/nixos/dm
+    ../../modules/nixos/wm
   ];
 
   home-manager = {

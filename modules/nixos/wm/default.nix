@@ -1,6 +1,5 @@
 _: {
   imports = [
-    ./ly.nix
+    ./niri.nix
   ];
-
 }

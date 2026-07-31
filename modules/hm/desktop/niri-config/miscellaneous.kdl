@@ -1,0 +1,104 @@
+// ============ 杂项(顶层设置) ============
+
+// 启动时执行的程序,参数规则和 binds 的 spawn 一样(不用 shell)。
+// 注:以 systemd session 跑 niri 时 xdg-desktop-autostart 开箱即用,
+// GNOME 里配置过的自启动在这里也生效,这里只放额外要起的。
+// 例:spawn-at-startup "waybar"
+// spawn-at-startup "fcitx5"  // 输入法一般由 HM 的 systemd 管,不用重复
+
+// 启动时执行 shell 命令(25.08+),整条字符串交给 sh
+// spawn-sh-at-startup "qs -c ~/source/qs/MyAwesomeShell"
+
+// 让应用省略客户端装饰(标题栏)。
+// 应用硬要 CSD 也会尊重;同时告知客户端处于平铺状态(去掉部分圆角)。
+// 已运行的应用不完全生效(标题栏不会去掉,这是 SDL2 的 workaround),
+// 改完要重启应用。配窗口圆角/阴影效果推荐开
+prefer-no-csd
+
+// 截图保存路径,~ 开头展开成 home;strftime(3) 格式。
+// 末尾目录不存在会自动创建;null 则不存盘(只进剪贴板)
+screenshot-path "~/Pictures/Screenshots/Screenshot from %Y-%m-%d %H-%M-%S.png"
+
+// ---------- 环境变量 ----------
+// 只对 niri 起的进程生效,不会进 systemd 全局环境
+environment {
+    // QT_QPA_PLATFORM "wayland"
+    // 用 null 移除变量
+    // DISPLAY null
+}
+
+// ---------- 光标 ----------
+cursor {
+    // 主题名和大小,同时设置 XCURSOR_THEME / XCURSOR_SIZE
+    // xcursor-theme "breeze_cursors"
+    // xcursor-size 48
+    // 打字时隐藏光标(0.1.10+)。注意:Wine 原生 Wayland 玩 FPS 可能
+    // 视角乱跳,遇到就把这个关掉
+    // hide-when-typing
+    // 光标停止移动多少毫秒后自动隐藏
+    // hide-after-inactive-ms 1000
+}
+
+// ---------- 概览(25.05+) ----------
+overview {
+    // 工作区缩小的程度,0~0.75,越小缩得越狠
+    zoom 0.4
+    // 概览里工作区后面的底色(alpha 忽略);也可在 output 里单独设
+    // backdrop-color "#262626"
+    // 概览里工作区的阴影,参数和 layout 的 shadow 一样,
+    // 但按 1080 高的工作区归一化,所以数值要更大
+    // workspace-shadow {
+    //     // off
+    //     softness 40
+    //     spread 10
+    //     offset x=0 y=10
+    //     color "#00000050"
+    // }
+}
+
+// ---------- xwayland-satellite 集成(25.08+) ----------
+// 检测到 xwayland-satellite 时会自动建 X11 socket、设 DISPLAY,
+// 有 X11 客户端连上来再拉起它,挂了会重启。
+// off 关闭集成;path 指定二进制路径。
+// 你大部分应用走原生 Wayland,按需
+// xwayland-satellite {
+//     // off
+//     path "xwayland-satellite"
+// }
+
+// ---------- 剪贴板(25.02+) ----------
+clipboard {
+    // 关闭主剪贴板(中键粘贴),只对之后启动的应用生效。
+    // Linux 老用户习惯中键粘贴,按喜好
+    // disable-primary
+}
+
+// ---------- 热键面板 ----------
+hotkey-overlay {
+    // 启动时不自动弹出热键帮助。你已经熟悉按键的话推荐开
+    skip-at-startup
+    // 未绑定的动作也显示(防止困惑)。想只显示真绑定的就开(25.08+)
+    // hide-not-bound
+}
+
+// ---------- 配置通知(25.08+) ----------
+config-notification {
+    // 关闭「配置文件解析失败」的通知,适合自己另有错误提示渠道时
+    // disable-failed
+}
+
+// ---------- 背景模糊(26.04+) ----------
+// 控制所有背景模糊。默认应用/图层请求(ext-background-effect)时可用,
+// 也可用 window-rule / layer-rule 的 background-effect 手动开。
+blur {
+    off //全局关闭模糊(包括应用自己请求的)
+    // 降采样/升采样次数,越多越平滑但越吃 GPU
+    passes 2
+    // 每次采样的偏移倍数。先加大 offset(不增加 GPU 负担)直到出伪影,
+    // 再需要更平滑就加 passes
+    offset 3.0
+    // 叠加噪点,减轻色彩断层
+    noise 0.03
+    // 模糊背景的色彩饱和度:1 正常,>1 更鲜艳,<1 更灰
+    saturation 1.0
+}

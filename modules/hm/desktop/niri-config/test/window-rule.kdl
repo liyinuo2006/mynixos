@@ -1,0 +1,143 @@
+// ============ 窗口规则 ============
+// 按配置中出现的顺序处理:通用规则放前面,具体覆盖放后面。
+// match 之间是「或」;同一行 match 内是「且」;
+// exclude 命中则整条规则不生效。
+// 一般不能「取消」属性,只能改成别的值;不想命中就用 exclude。
+// 查窗口 title / app-id:niri msg pick-window 点击窗口。
+// 正则语法:https://docs.rs/regex/latest/regex/ ,反斜杠多时用 r#"..."# 原始字符串。
+
+// ---------- 窗口匹配 ----------
+// match title="Firefox"               标题包含(正则,任意位置匹配)
+// match app-id="Alacritty"            app-id 包含
+// match app-id="firefox" title="Gmail"  同行多个条件 = 且
+// match is-active=true                活动窗口(每个工作区一个,不抢键盘焦点)
+// match is-focused=true               键盘焦点窗口(全局唯一;launcher 开着时窗口不命中)
+// match is-active-in-column=true      列内的活动窗口(每列必有,初始打开时也命中)
+// match is-floating=true              悬浮窗口(25.01+,只在打开后判断,不能改开启属性)
+// match is-window-cast-target=true    正在被窗口级录屏的窗口(25.02+)
+// match is-urgent=true                请求关注的窗口(25.05+)
+// match at-startup=true               启动后 60 秒内(适合 open-on-output 之类)
+
+// ---------- 开启时属性(窗口第一次打开时生效) ----------
+// default-column-width { proportion 0.5; }   初始宽度,悬浮窗口也生效;
+//    空 {} = 窗口自己定宽(注意:发 (0,H) 初始 configure,部分客户端会误解)
+// default-window-height { fixed 500; }       初始高度(25.01+)
+// open-on-output "HDMI-A-1"                  打开到指定显示器(不存在则用焦点显示器)
+// open-on-workspace "chat"                   打开到指定命名工作区(0.1.6+)
+// open-maximized true                        打开即最大化
+// open-maximized-to-edges true               打开即贴边最大化(25.11+);false 可阻止
+// open-fullscreen true                       打开即全屏;false 可阻止(如 Telegram 媒体查看器)
+// open-floating true                         打开即悬浮(25.01+);false 强制平铺
+// open-focused false                         打开时不抢焦点(如 GIMP 启动画面)
+
+// ---------- 持续生效属性 ----------
+// block-out-from "screencast"                录屏时遮成黑块(密码管理器等);
+//    "screen-capture" 则所有截图也遮(内置交互截图 UI 除外)。
+//    注意:按标题遮标签页会有一帧泄漏,标题不是双缓冲的
+// opacity 0.5                                透明度 0~1,叠加在窗口自身透明度之上;
+//    每个 surface 单独应用,弹窗会透出窗口内容
+// variable-refresh-rate true                 在 on-demand VRR 输出上显示时启用 VRR(0.1.9+)
+// default-column-display "tabbed"            该窗口进新列时的默认显示模式(25.02+)
+// default-floating-position x=32 y=32 relative-to="bottom-left"  悬浮初始位置(25.01+),
+//    relative-to 取 top-left/top-right/bottom-left/bottom-right/top/bottom/left/right,
+//    坐标方向随 relative-to 变化;单边(如 "top")= 水平居中贴边,做下拉终端
+// scroll-factor 0.75                         发给该窗口的滚动速度倍率(25.02+),和输入设备倍率相乘
+// draw-border-with-background false          覆盖边框/焦点环的实心背景行为
+// min-width / max-width / min-height / max-height  最小/最大尺寸(逻辑像素);
+//    注意:max-height 只有等于 min-height 才对自动高度生效(高度分配算法的限制)
+//    (OBS 没最小宽度时:match app-id=r#"^com\.obsproject\.Studio$"# min-width 876)
+
+// ---------- 示例规则 ----------
+// 全部窗口圆角+裁切(你现在的全局风格)
+window-rule {
+    geometry-corner-radius 10   // 窗口几何圆角,只影响边框/焦点环的圆角;
+                                // 配合 clip-to-geometry 才真正裁出圆角窗口。
+                                // 也可写四个值:左上 右上 右下 左下(如 GTK3 的 8 8 0 0)
+    clip-to-geometry true       // 按几何裁窗口:切掉 CSD 自带阴影、圆角生效
+    tiled-state true            // 通知窗口「已平铺」:变矩形、隐藏 CSD 阴影,
+                                // 终端(如 foot)会关掉网格对齐。配 prefer-no-csd 时默认开
+    draw-border-with-background false  // 边框画在窗口四周而不是背后实心块
+    background-effect {
+        blur true               // 窗口背后模糊
+        xray false              // xray 是高效模糊(默认开);
+                                // false = 普通模糊,实验性,开合动画时不生效
+        // noise 0.05           // 噪点,防色彩断层
+        // saturation 3         // 背景饱和度
+    }
+    popups {
+        // 这个窗口的弹窗/菜单/提示条的规则(26.04+,xdg-popup 才生效;
+        // 网页应用/游戏引擎自己画的「假弹窗」管不到,fcitx 也管不到)
+        // opacity 0.5
+        // geometry-corner-radius 15
+        // background-effect { blur true }
+    }
+}
+
+// 浏览器:启动时最大化
+window-rule {
+    match app-id="^google-chrome$"
+    open-maximized true
+    geometry-corner-radius 10
+    clip-to-geometry true
+    tiled-state true
+    draw-border-with-background false
+}
+
+// 悬浮窗口加阴影(25.02+):shadow 规则与 layout 的 shadow 参数相同,
+// on/off 是覆盖开关,on 优先于 off
+// window-rule {
+//     match is-floating=true
+//     shadow {
+//         on
+//     }
+// }
+
+// 单独给某窗口关/开边框或焦点环
+// window-rule {
+//     match app-id="^mpv$"
+//     focus-ring { off }   // 看视频时关掉焦点环
+// }
+
+// 单独给某窗口配色标签指示条
+// window-rule {
+//     match app-id=r#"^org\.keepassxc\.KeePassXC$"#
+//     tab-indicator {
+//         inactive-color "darkred"
+//     }
+// }
+
+// 播放器开 on-demand VRR:需要 output 里配 variable-refresh-rate on-demand=true
+// window-rule {
+//     match app-id="^mpv$"
+//     variable-refresh-rate true
+// }
+
+// Firefox 画中画:悬浮在右下角
+// window-rule {
+//     match app-id="firefox$" title="^Picture-in-Picture$"
+//     open-floating true
+//     default-column-width { fixed 480; }
+//     default-window-height { fixed 270; }
+//     default-floating-position x=32 y=32 relative-to="bottom-right"
+// }
+
+// 下拉终端示例(启动时用 alacritty --class dropdown 之类)
+// window-rule {
+//     match app-id="^dropdown$"
+//     open-floating true
+//     default-floating-position x=0 y=0 relative-to="top"
+//     default-window-height { proportion 0.5; }
+//     default-column-width { proportion 0.8; }
+// }
+
+// 录屏时遮住密码管理器(预览:niri msg debug preview-render 或 debug 的 preview-render)
+// window-rule {
+//     match app-id=r#"^org\.keepassxc\.KeePassXC$"#
+//     block-out-from "screencast"
+// }
+
+// 愚人节彩蛋:baba-is-float true 让窗口上下浮动,别开
+// window-rule {
+//     match is-floating=true
+//     baba-is-float true
+// }

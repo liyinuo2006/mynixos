@@ -1,0 +1,39 @@
+// ============ 手势(25.02+) ============
+// niri 的手势指:拖拽到屏幕边缘触发滚动/切换工作区、热角开概览。
+
+gestures {
+    // 拖拽(DnD)或拖动窗口到屏幕边缘时,横向滚动平铺视图。
+    // 触摸屏拖文件也生效。
+    // trigger-width:边缘触发区宽度(逻辑像素)
+    // delay-ms:延迟,避免跨屏拖拽误触发
+    // max-speed:最大滚动速度(逻辑像素/秒),从 trigger-width 到屏幕边缘线性加速
+    dnd-edge-view-scroll {
+        trigger-width 30
+        delay-ms 100
+        max-speed 1500
+        // 想要边缘滚动更灵敏(文件管理器拖文件到屏幕边缘切列):
+        // trigger-width 100
+        // max-speed 3000
+    }
+
+    // 概览里拖拽到屏幕上下边缘时,上下滚动工作区(25.05+)。
+    // 参数同上;max-speed 1500 ≈ 每秒一个屏幕高度
+    dnd-edge-workspace-switch {
+        trigger-height 50
+        delay-ms 100
+        max-speed 1500
+    }
+
+    // 热角(25.05+):鼠标怼到显示器角落切换概览,拖拽中同样生效。
+    // 默认只开左上角;不写角落就是 top-left。
+    // 25.11 起可在 output {} 的 hot-corners 里按显示器覆盖。
+    // 注意:和窗口-rule 的 close 键一样,热角会抢「鼠标移到角落」这个动作,
+    // 如果你角落经常有要点的东西(如状态栏按钮),建议 off
+    hot-corners {
+        top-left
+        // top-right
+        // bottom-left
+        // bottom-right
+        // off  // 全部关闭
+    }
+}

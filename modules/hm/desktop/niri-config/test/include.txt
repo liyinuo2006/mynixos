@@ -1,0 +1,43 @@
+// ============ include(25.11+) ============
+// 在配置顶层把其它文件合并进来;被包含文件也可以再 include。
+// 所有被包含的文件都会被监听,改动即热重载。
+
+// 路径写法:相对当前文件(other.kdl / ./other.kdl)、绝对路径、
+// ~ 开头展开 home(26.04+)
+// include "colors.kdl"
+
+// 可选 include(26.04+):文件不存在不报错只警告,
+// 仍会监听,以后创建了文件会自动加载。
+// 文件存在但语法错仍会报错
+// include optional=true "optional-config.kdl"
+
+// ---------- 位置性(重要) ----------
+// include 是位置性的:会覆盖它之前写的同选项,之后写的再覆盖它。
+// 例:include 在中间 = 中间这个值生效
+// layout { border { active-color "red"; } }
+// include "colors.kdl"   // colors.kdl 里把 border 改成 green
+//  → 最终 green
+
+// window-rule 在 include 的位置「插入」,规则顺序=生效顺序,
+// 通用规则在前、include 特定规则、再后面写最后覆盖的规则。
+
+// ---------- 合并规则 ----------
+// 大多数区块(如 layout、output 单段)按属性合并,只改写到的。
+// 多段区块(window-rule / output / workspace)原样插入,不合并同名段。
+// binds:后面定义的相同键覆盖前面。
+// flag(prefer-no-csd 等):显式写 false 可以关掉(主要配置里写的也能被
+//   include 的文件关掉)。
+// 不合并的区块:struts、preset-column-widths、animations 各子段、
+//   input 里各设备段 —— 后写的整体替换,不是逐属性合并!
+
+// ---------- border 特例 ----------
+// 主配置里写 layout { border {} } = 启用边框(历史遗留行为);
+// 在 include 的文件里写同样的空 border {} 什么都不做!
+// 想把边框配置搬进被包含文件,必须显式写:
+// layout {
+//     border {
+//         on
+//         width 4
+//         active-color "#ffc87f"
+//     }
+// }

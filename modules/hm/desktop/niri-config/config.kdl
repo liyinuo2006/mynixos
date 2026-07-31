@@ -1,118 +1,13 @@
-input {
-    touchpad {
-        // off
-        tap
-        // dwt
-        // drag false
-        // drag-lock
-
-        natural-scroll
-
-        // 指针加速度，范围 -1.0 到 1.0，默认 0.0
-        // accel-speed 0.2
-
-
-        // accel-profile "flat"
-        // scroll-method "two-finger"
-        // disabled-on-external-mouse
-    }
-    mouse {
-        // off
-        // natural-scroll
-        // accel-speed 0.2
-        // accel-profile "flat"
-        // scroll-method "no-scroll"
-    }
-    // focus-follows-mouse max-scroll-amount="0%"
-}
-
-output "Virtual-1" {
-        mode "1920x1080@60.000"
-        scale 1.5
-        position x=0 y=0
-        focus-at-startup
-}
-
-layout {
-    background-color "transparent"
-    center-focused-column "never"
-
-    preset-column-widths {
-        proportion 0.33333
-        proportion 0.5
-        proportion 0.66667
-        proportion 1.0
-    }
-    preset-window-heights {
-        proportion 0.33333
-        proportion 0.5
-        proportion 0.66667
-        proportion 1.0
-    }
-
-    default-column-width { proportion 0.5; }
-
-    shadow {
-        // on
-        // draw-behind-window true
-        softness 30
-        // Spread expands the shadow.
-        spread 5
-        // Offset moves the shadow relative to the window.
-        offset x=0 y=5
-    }
-
-    struts {
-        // left 64
-        // right 64
-        // top 64
-        // bottom 64
-    }
-    gaps 4
-
-    border {
-        width 2
-    }
-
-    focus-ring {
-        width 2
-    }
-}
-
-
-hotkey-overlay {
-    skip-at-startup
-}
-
-prefer-no-csd
-
-screenshot-path "~/Pictures/Screenshots/Screenshot from %Y-%m-%d %H-%M-%S.png"
-
-animations {
-    // slowdown 3.0
-}
-
-
-
-
-/* You can also fine-tune the blur effect globally. */
-blur {
-  passes 2        // more passes = stronger blur (default: 3)
-  offset 3.0      // sample distance per pass (default: 3.0)
-  noise 0.03      // grain overlay (default: 0.02)
-  saturation 1.0  // color saturation boost (default: 1.5)
-}
-
-
-
-debug {
-  // Allows notification actions and window activation from Noctalia.
-  honor-xdg-activation-with-invalid-serial
-}
-
 //include 导入
   include "binds.kdl"
   include "window-rule.kdl"
   include "layer-rule.kdl"
+//可选 include(26.04+):文件不存在不报错只警告
+include optional=true "noctalia.kdl"
 
-include "noctalia.kdl"
+include "input.kdl"
+include "outputs.kdl"
+include "layout.kdl"
+include "miscellaneous.kdl"
+include "debug-options.kdl"
+include "animations.kdl"

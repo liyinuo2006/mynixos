@@ -1,0 +1,109 @@
+// ============ 按键绑定 ============
+// 注意:这是少数「不写就没有默认值」的板块,必须完整复制默认配置!
+// 快捷键 = 修饰键(用 + 连接) + XKB 键名。
+// 修饰键:Ctrl/Control、Shift、Alt、Super/Win、Mod5(AltGr)、
+//   ISO_Level5_Shift、Mod(TTY 下=Super,嵌套窗口里=Alt)。
+// 查键名:用 wev 按一下要绑的键,看 sym: 后面的名字。
+// 绑带 Shift 的符号键要写 Shift+未按 Shift 的键名,如 US 布局的 < 是 Mod+Shift+Comma。
+
+binds {
+    // ---------- 语法选项 ----------
+    // 默认按住会连发;不想连发加 repeat=false
+    // Mod+T repeat=false { spawn "alacritty"; }
+    // 限流冷却,防止触发太快,滚轮绑定特别有用
+    // Mod+WheelScrollDown cooldown-ms=150 { focus-workspace-down; }
+    // 在热键面板里显示为自定义标题(25.02+),支持 Pango 标记
+    // Mod+Shift+S hotkey-overlay-title="切换深色/浅色" { spawn "some-script.sh"; }
+    // 从热键面板移除:hotkey-overlay-title=null
+    // Mod+Q hotkey-overlay-title=null { close-window; }
+    // 锁屏时也能触发(仅 spawn)
+    // XF86AudioMute allow-when-locked=true { spawn "wpctl" "set-mute" "@DEFAULT_AUDIO_SINK@" "toggle"; }
+    // 被应用屏蔽快捷键时也永远生效(远程桌面/KVM 场景)
+    // Super+Alt+L allow-inhibiting=false { spawn "swaylock"; }
+
+    // ---------- 基础操作(默认配置核心) ----------
+
+    // 关闭窗口
+    Mod+Q { close-window; }
+    // 切换最近两个窗口(Alt-Tab 替代,不弹面板直接切)
+    Mod+Tab { switch-window; }
+    // 焦点左右移动 / 焦点在列内上下移动
+    Mod+Left { focus-column-left; }
+    Mod+Right { focus-column-right; }
+    Mod+Up { focus-window-up; }
+    Mod+Down { focus-window-down; }
+    // 焦点跳第一/最后一列
+    Mod+Shift+Left { focus-column-first; }
+    Mod+Shift+Right { focus-column-last; }
+
+    // 移动窗口(列、列内上下)
+    Mod+Ctrl+Left { move-column-left; }
+    Mod+Ctrl+Right { move-column-right; }
+    Mod+Ctrl+Up { move-window-up; }
+    Mod+Ctrl+Down { move-window-down; }
+    // 把窗口吐到自己的一列 / 并入相邻列
+    Mod+Ctrl+Shift+Left { expel-window-left; }
+    Mod+Ctrl+Shift+Right { expel-window-right; }
+    Mod+Ctrl+Shift+Up { consume-window-into-column; }
+    Mod+Ctrl+Shift+Down { expel-window-down; }
+
+    // 列宽循环切换(配合 layout 的 preset-column-widths)
+    Mod+R { switch-preset-column-width; }
+    // 反向循环(25.08+)
+    // Mod+Shift+R { switch-preset-column-width-back; }
+    // 窗口高度循环(配合 preset-window-heights)
+    Mod+Ctrl+Shift+R { switch-preset-window-height; }
+    // 最大化 / 恢复
+    Mod+F { maximize-column; }
+    // 全屏(和最大化不同,全屏占满整个屏)
+    // Mod+Shift+F { fullscreen-window; }
+    // 平铺 <-> 悬浮切换
+    Mod+Shift+Space { toggle-window-floating; }
+    // 列内标签页模式切换(25.02+)
+    Mod+D { toggle-column-tabbed-display; }
+    // 概览
+    Mod+Space { overview-toggle; }
+
+    // ---------- 滚轮绑定 ----------
+    // 触控板滚动也支持,会按滑动距离拆成离散刻度。
+    // 注意:触控板默认 natural-scroll,所以下面这对示例是「反着写」的
+    // 音量示例:滚动调音量(配合 wpctl,pipewire 的客户端)
+    // Mod+TouchpadScrollDown { spawn "wpctl" "set-volume" "@DEFAULT_AUDIO_SINK@" "0.02+"; }
+    // Mod+TouchpadScrollUp { spawn "wpctl" "set-volume" "@DEFAULT_AUDIO_SINK@" "0.02-"; }
+    // 按住修饰键滚动时,这些滚动事件不会传给应用
+
+    // ---------- 鼠标点击绑定(25.01+) ----------
+    // 作用于点击瞬间的焦点窗口,不是被点的窗口。
+    // 注意:绑 Mod+MouseLeft/Right 会覆盖「拖窗口」手势
+    // Mod+MouseLeft { close-window; }
+    // Mod+MouseRight { close-window; }
+
+    // ---------- 功能键示例 ----------
+    // 音量(即使锁屏也生效,加 allow-when-locked=true)
+    XF86AudioRaiseVolume { spawn "wpctl" "set-volume" "@DEFAULT_AUDIO_SINK@" "0.05+"; }
+    XF86AudioLowerVolume { spawn "wpctl" "set-volume" "@DEFAULT_AUDIO_SINK@" "0.05-"; }
+    XF86AudioMute { spawn "wpctl" "set-mute" "@DEFAULT_AUDIO_SINK@" "toggle"; }
+    // 屏幕亮度(你笔记本内屏的实际名字用 niri msg outputs 或 brightnessctl -l 查)
+    // XF86MonBrightnessUp { spawn "brightnessctl" "set" "5%+"; }
+    // XF86MonBrightnessDown { spawn "brightnessctl" "set" "5%-"; }
+    // 锁屏(没装 swaylock 就别开)
+    // Mod+Shift+L { spawn "swaylock"; }
+    // 截图后调起编辑器
+    // Mod+Shift+S { spawn "sh" "-c" "sleep 0.1; grim -g \"$(slurp)\" - | wl-copy"; }
+
+    // ---------- 其它 action 说明 ----------
+    // spawn:直接执行程序,不用 shell!参数要逐个分开写,不展开变量/~/通配符。
+    //   例:spawn "alacritty" "-e" "/usr/bin/fish"(对);spawn "alacritty -e /usr/bin/fish"(错)
+    //   需要 shell 功能(变量、管道、多个命令)就用 spawn-sh "整条命令"(25.08+)
+    //   程序名开头单独一个 ~ 会展开成 home 目录
+    // do-screen-transition:冻结画面 250ms 再交叉淡入,主题切换时用;
+    //   可设 delay-ms=100;也能用 niri msg action do-screen-transition 调
+    // Mod+Return { do-screen-transition; }
+    // toggle-window-rule-opacity:切换当前窗口的 opacity 规则(25.02+),
+    //   前提是窗口规则里已经设了半透明 opacity
+    // Mod+O { toggle-window-rule-opacity; }
+    // toggle-keyboard-shortcuts-inhibit:逃生舱,应用屏蔽快捷键后按它恢复。
+    //   建议绑一个,防止被烂应用锁死(25.02+)
+    // Mod+Escape { toggle-keyboard-shortcuts-inhibit; }
+    // 完整 action 列表:运行 niri msg action 查看
+}

@@ -1,8 +1,8 @@
 binds {
 //自定义应用
     Mod+T hotkey-overlay-title="Open a Terminal: kitty" { spawn "kitty" "-e" "fish" ; }
-    Super+1 repeat=false hotkey-overlay-title="google-chrome" { spawn "google-chrome"; }
-    Super+2 repeat=false hotkey-overlay-title="nautilus" { spawn "nautilus"; }
+    Super+G repeat=false hotkey-overlay-title="google-chrome" { spawn "google-chrome"; }
+    Super+E repeat=false hotkey-overlay-title="nautilus" { spawn "nautilus"; }
 
 // niri 的 windows 操作
     Mod+O repeat=false { toggle-overview; }
@@ -19,11 +19,6 @@ binds {
     Mod+Ctrl+Up    { move-window-up; }
     Mod+Ctrl+Right { move-column-right; }
 
-    Mod+Home { focus-column-first; }
-    Mod+End  { focus-column-last; }
-    Mod+Ctrl+Home { move-column-to-first; }
-    Mod+Ctrl+End  { move-column-to-last; }
-
     Mod+Page_Down      { focus-workspace-down; }
     Mod+Page_Up        { focus-workspace-up; }
     Mod+Ctrl+Page_Down { move-column-to-workspace-down; }
@@ -32,15 +27,14 @@ binds {
     Mod+Shift+Page_Down { move-workspace-down; }
     Mod+Shift+Page_Up   { move-workspace-up; }
 
-    Mod+Ctrl+1 { move-column-to-workspace 1; }
-    Mod+Ctrl+2 { move-column-to-workspace 2; }
-    Mod+Ctrl+3 { move-column-to-workspace 3; }
-    Mod+Ctrl+4 { move-column-to-workspace 4; }
-    Mod+Ctrl+5 { move-column-to-workspace 5; }
-    Mod+Ctrl+6 { move-column-to-workspace 6; }
-    Mod+Ctrl+7 { move-column-to-workspace 7; }
-    Mod+Ctrl+8 { move-column-to-workspace 8; }
-    Mod+Ctrl+9 { move-column-to-workspace 9; }
+    Mod+1 { focus-workspace 2; }
+    Mod+2 { focus-workspace 3; }
+    Mod+3 { focus-workspace 4; }
+    Mod+4 { focus-workspace 5; }
+    Mod+5 { focus-workspace 6; }
+    Mod+6 { focus-workspace 7; }
+    Mod+7 { focus-workspace 8; }
+    Mod+8 { focus-workspace 9; }
 
     Mod+Tab { focus-workspace-previous; }
 
@@ -57,8 +51,6 @@ binds {
     Mod+Shift+F { fullscreen-window; }
     Mod+Ctrl+F { expand-column-to-available-width; }
 
-    Mod+C { center-column; }
-    Mod+Ctrl+C { center-visible-columns; }
 
     Mod+Minus { set-column-width "-10%"; }
     Mod+Equal { set-column-width "+10%"; }

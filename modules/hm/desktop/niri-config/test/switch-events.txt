@@ -1,0 +1,20 @@
+// ============ 开关事件绑定 ============
+// 语法类似按键绑定,但事件不是按键。
+// 注意:开关事件在锁屏时也会执行!
+// 目前只支持 spawn action。
+
+switch-events {
+    // 合盖 / 开盖。
+    // niri 会自己开关笔记本内屏,这里适合加点额外动作。
+    // 你的 Vostro 3420:合盖睡眠一般交给 logind 管,
+    // 这里可以只放通知,方便排查
+    lid-close { spawn "notify-send" "笔记本盖已合上"; }
+    lid-open { spawn "notify-send" "笔记本盖已打开"; }
+
+    // 平板模式开 / 关(二合一笔记本专用)。
+    // 平板模式下键盘鼠标不可用,通常用来弹出屏幕键盘
+    // (需要自己装 wvkbd / sysboard 之类的屏幕键盘)。
+    // 你的 Vostro 3420 不是二合一,没有这个开关,保持注释即可
+    // tablet-mode-on { spawn "bash" "-c" "gsettings set org.gnome.desktop.a11y.applications screen-keyboard-enabled true"; }
+    // tablet-mode-off { spawn "bash" "-c" "gsettings set org.gnome.desktop.a11y.applications screen-keyboard-enabled false"; }
+}

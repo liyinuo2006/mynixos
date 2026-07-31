@@ -1,0 +1,63 @@
+// ============ 最近窗口切换器(25.11+,Alt-Tab) ============
+// off 整个关闭切换器。
+
+recent-windows {
+    // debounce-ms:窗口获得焦点后延迟多久才「记入」最近列表。
+    // 防止切窗路上经过的中间窗口污染列表(键盘导航、focus-follows-mouse 都会经过);
+    // 对目标窗口输入等动作会跳过延迟立即记录。
+    // 想即时记录就设 0
+    debounce-ms 750
+
+    // open-delay-ms:按下 Alt-Tab 后延迟多久才显示切换器界面,
+    // 让快速点按 Alt-Tab 不闪屏。设 0 则立即显示
+    open-delay-ms 150
+
+    // 当前选中窗口预览后的高亮
+    highlight {
+        // 正常颜色 / urgent 窗口颜色(未选中窗口也有暗色版本)
+        active-color "#999999ff"
+        urgent-color "#ff9999ff"
+        // 高亮比预览大多少(逻辑像素)
+        padding 30
+        // 高亮圆角
+        corner-radius 0
+    }
+
+    // 窗口预览大小
+    previews {
+        // 预览最大比例:窗口不能放大超过这个值
+        max-scale 0.5
+        // 预览最大高度:小屏主要被 max-scale 限制,大屏主要被这个限制。
+        // 调小能多放几个窗口,调大看得清内容
+        max-height 480
+    }
+
+    // ---------- 切换器按键 ----------
+    // 注意:写了 binds {} 会清掉所有默认绑定,要全抄!
+    // 默认:AltTab / ModTab 全部窗口,Alt` / Mod` 当前应用内切,加 Shift 反向。
+    // action:next-window / previous-window
+    // filter="app-id":只切当前应用的窗口
+    // scope="all" / "output" / "workspace":打开时预选的作用域
+    binds {
+        Alt+Tab         { next-window; }
+        Alt+Shift+Tab   { previous-window; }
+        Alt+grave       { next-window     filter="app-id"; }
+        Alt+Shift+grave { previous-window filter="app-id"; }
+
+        // 笔记本用户常用 Mod+Tab(Alt 被应用占用时)
+        Mod+Tab         { next-window; }
+        Mod+Shift+Tab   { previous-window; }
+        Mod+grave       { next-window     filter="app-id"; }
+        Mod+Shift+grave { previous-window filter="app-id"; }
+
+        // 想默认切当前显示器内的窗口:
+        // Mod+Tab { next-window scope="output"; }
+    }
+
+    // ---------- 切换器打开时的内置按键 ----------
+    // Escape 取消;Enter 确认当前选择;A/W/O 选作用域;S 循环作用域;
+    // 方向键/Home/End 移动选择。
+    // 普通 binds 里的动作会自动生效:focus-column-left/right(和变体)移动选择、
+    // focus-column-first/last 跳首尾、close-window 关选中窗口、screenshot 开截图。
+    // 原理是取对应动作绑定的键的「无修饰键版本」,所以 HJKL 之类的自定义键位也通用。
+}

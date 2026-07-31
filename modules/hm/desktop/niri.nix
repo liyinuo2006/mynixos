@@ -16,4 +16,9 @@
       config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/mynixos/modules/hm/desktop/niri-config/layer-rule.kdl";
 
   };
+
+  wayland.windowManager.niri = {
+    enable = true;
+  };
+
 }

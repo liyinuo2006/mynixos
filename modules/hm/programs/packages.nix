@@ -47,7 +47,7 @@ in
 
     # Noctalia 模板主题依赖:GTK 基础主题 + Qt 配色工具
     adw-gtk3
-    qt6ct
+    qt6Packages.qt6ct
 
     ripgrep
     tree

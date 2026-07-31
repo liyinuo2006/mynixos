@@ -15,26 +15,40 @@
   fonts = {
     enableDefaultPackages = true;
     packages = with pkgs; [
-      noto-fonts
       noto-fonts-cjk-sans
       noto-fonts-cjk-serif
       noto-fonts-color-emoji
       nerd-fonts.jetbrains-mono
+
+      corefonts
+      vista-fonts
+      vista-fonts-chs
+      vista-fonts-cht
+
+      lxgw-wenkai
+      lxgw-wenkai-screen
+      lxgw-neoxihei
+      lxgw-fusionkai
+      sarasa-gothic
+
     ];
     fontconfig = {
       enable = true;
       defaultFonts = {
         sansSerif = [
+          "Sarasa Gothic SC"
+          "LXGW WenKai"
           "Noto Sans CJK SC"
-          "Noto Sans"
         ];
         serif = [
           "Noto Serif CJK SC"
-          "Noto Serif"
         ];
         monospace = [
-          "JetBrainsMono Nerd Font"
+          "JetBrainsMono Nerd Font Mono"
           "Noto Sans Mono CJK SC"
+        ];
+        emoji = [
+          "Noto Color Emoji"
         ];
       };
     };

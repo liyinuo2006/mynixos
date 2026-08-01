@@ -273,7 +273,7 @@
 
   # ===== 主题 =====
   theme = {
-    mode = "dark";
+    mode = "auto";
     source = "wallpaper";
 
     templates = {
@@ -300,14 +300,6 @@
 
     automation = {
       enabled = true;
-    };
-
-    default = {
-      path = "~/mynixos/wallpaper/白裙红瞳少女.png";
-    };
-
-    monitors."Virtual-1" = {
-      path = "~/mynixos/wallpaper/白裙红瞳少女.png";
     };
   };
 }

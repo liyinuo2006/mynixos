@@ -44,12 +44,14 @@ opencode 已在 `modules/hm/ai-agent/opencode.nix` 配置好:
 - `modules/nixos/`:`core/` 基础、`wm/` niri、`programs/` clash/nautilus/packages/polkit、`dm/` LY。
 - `modules/hm/`:`desktop/` niri 配置+noctalia、`i18n/` fcitx5-rime-ice + language、
   `programs/` fish/git/zed/zen-browser/spotify/terminal(kitty)/packages、`ai-agent/` opencode。
+- `modules/hm/common/`:共享数据(非模块,不挂 `default.nix`)。`nixd.nix` 是 zed 与
+  opencode 共用的 nixd LSP 配置,改 nixd 设置(补全源/格式化/suppress)改那里一处即可。
 
 ## 硬约定
 
 - **格式化**:仅 `nixfmt`,禁止其他 Nix formatter。
 - **LSP**:仅 `nixd`;`nil` 在 `zed-editor.nix` 被显式禁用;
-  `sema-extra-with` 已在两处(zed + opencode)的 nixd 配置里 suppress。
+  `sema-extra-with` 的 suppress 在 `common/nixd.nix` 统一管理。
 - **注释**:全仓库中文。
 - **shell**:fish + starship;别名集中在 `modules/hm/programs/shell.nix`,
   加别名去那里,别散落别处。

@@ -36,25 +36,8 @@
 
       lsp = {
         nixd = {
-          settings = {
-            nixpkgs = {
-              expr = "import (builtins.getFlake (builtins.toString ./.)).inputs.nixpkgs { }";
-            };
-            formatting = {
-              command = [ "nixfmt" ];
-            };
-            options = {
-              nixos = {
-                expr = "(builtins.getFlake (builtins.toString ./.)).nixosConfigurations.mynixos.options";
-              };
-              "home-manager" = {
-                expr = "(builtins.getFlake (builtins.toString ./.)).nixosConfigurations.mynixos.options.home-manager.users.type.getSubOptions []";
-              };
-            };
-            diagnostic = {
-              suppress = [ "sema-extra-with" ];
-            };
-          };
+          # nixd 配置与 opencode 共用一份(modules/hm/common/nixd.nix)
+          settings = import ../common/nixd.nix { };
         };
       };
 

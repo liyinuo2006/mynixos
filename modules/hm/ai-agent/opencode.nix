@@ -27,25 +27,8 @@
             NIX_PATH = "nixpkgs=${inputs.nixpkgs}";
           };
           initialization = {
-            nixd = {
-              nixpkgs = {
-                expr = "import (builtins.getFlake (builtins.toString ./.)).inputs.nixpkgs { }";
-              };
-              formatting = {
-                command = [ "nixfmt" ];
-              };
-              options = {
-                nixos = {
-                  expr = "(builtins.getFlake (builtins.toString ./.)).nixosConfigurations.mynixos.options";
-                };
-                "home-manager" = {
-                  expr = "(builtins.getFlake (builtins.toString ./.)).nixosConfigurations.mynixos.options.home-manager.users.type.getSubOptions []";
-                };
-              };
-              diagnostic = {
-                suppress = [ "sema-extra-with" ];
-              };
-            };
+            # nixd 配置与 zed 共用一份(modules/hm/common/nixd.nix)
+            nixd = import ../common/nixd.nix { };
           };
         };
       };

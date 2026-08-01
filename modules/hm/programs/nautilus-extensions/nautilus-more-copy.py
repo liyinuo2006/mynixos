@@ -1,22 +1,9 @@
+# 本文件是本机自用版本，仅在本仓库维护。
 import gi
 gi.require_version("Gtk", "4.0")
 gi.require_version("Gdk", "4.0")
-from gi.repository import Gtk, Gdk, GLib, Nautilus, GObject
+from gi.repository import Gtk, Gdk, Nautilus, GObject
 from typing import List
-
-
-# copy text to the clipboard
-class ClipboardApp(Gtk.Application):
-    def __init__(self, str_to_copy: str):
-        super().__init__(application_id="org.example.ClipboardApp")
-        self.str_to_copy = str_to_copy
-
-    def do_activate(self):
-        display = Gdk.Display.get_default()
-        clipboard = display.get_clipboard()
-        provider = Gdk.ContentProvider.new_for_value(self.str_to_copy)
-        clipboard.set_content(provider)
-        GLib.timeout_add(300, self.quit)
 
 
 class MoreCopyExtension(GObject.GObject, Nautilus.MenuProvider):
@@ -44,12 +31,15 @@ class MoreCopyExtension(GObject.GObject, Nautilus.MenuProvider):
 
         multiple_files = len(files) > 1
         is_directory = not multiple_files and files[0].is_directory()
+        scope = "Background" if is_background else "Selection"
 
         copy_path_item = Nautilus.MenuItem(
-            name="MoreCopyExtension::CopyPath" + "Background" if is_background else "",
-            label="Copy Directory Path" if is_directory else "Copy File Paths" if multiple_files else "Copy File Path",
-            tip="",
-            icon="",
+            name=f"MoreCopyExtension::CopyPath{scope}",
+            label=(
+                "复制目录路径" if is_directory
+                else "复制所选文件路径" if multiple_files
+                else "复制文件路径"
+            ),
         )
         copy_path_item.connect(
             "activate",
@@ -57,10 +47,12 @@ class MoreCopyExtension(GObject.GObject, Nautilus.MenuProvider):
         )
 
         copy_name_item = Nautilus.MenuItem(
-            name="MoreCopyExtension::CopyName" + "Background" if is_background else "",
-            label="Copy Directory Name" if is_directory else "Copy File Names" if multiple_files else "Copy File Name",
-            tip="",
-            icon="",
+            name=f"MoreCopyExtension::CopyName{scope}",
+            label=(
+                "复制目录名称" if is_directory
+                else "复制所选文件名称" if multiple_files
+                else "复制文件名称"
+            ),
         )
         copy_name_item.connect(
             "activate",
@@ -70,9 +62,8 @@ class MoreCopyExtension(GObject.GObject, Nautilus.MenuProvider):
         submenu.append_item(copy_path_item)
         submenu.append_item(copy_name_item)
         menu_item = Nautilus.MenuItem(
-            name="MoreCopyExtension::MoreCopy" + "Background" if is_background else "",
-            label="Copy Path/Name",
-            tip="",
+            name=f"MoreCopyExtension::MoreCopy{scope}",
+            label="复制路径/名称",
             icon="edit-copy",
         )
         menu_item.set_submenu(submenu)
@@ -83,10 +74,19 @@ class MoreCopyExtension(GObject.GObject, Nautilus.MenuProvider):
 
     def copy_paths(self, files: List[Nautilus.FileInfo]) -> None:
         paths = [file.get_location().get_path() for file in files]
-        app = ClipboardApp("\n".join(paths))
-        app.run()
+        self._copy("\n".join(path for path in paths if path))
 
     def copy_names(self, files: List[Nautilus.FileInfo]) -> None:
-        names = [file.get_name().replace('/', '') for file in files]
-        app = ClipboardApp("\n".join(names))
-        app.run()
+        names = [file.get_name() for file in files]
+        self._copy("\n".join(name for name in names if name))
+
+    @staticmethod
+    def _copy(text: str) -> None:
+        if not text:
+            return
+        display = Gdk.Display.get_default()
+        if display is None:
+            return
+        clipboard = display.get_clipboard()
+        provider = Gdk.ContentProvider.new_for_value(text)
+        clipboard.set_content(provider)

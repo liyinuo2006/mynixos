@@ -60,7 +60,8 @@ in
     unzip
     zip
     p7zip
-    unrar
+    # rar 包同时提供 rar 与 unrar 命令，无需单独装 unrar
+    rar
     gnutar
     gzip
     xz

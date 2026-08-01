@@ -1,10 +1,9 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 #
-# NAME: Search Content — Nautilus Python Extension
-# DESC: Real content search & replace using grep/ripgrep/sed from Nautilus
-# AUTHOR: Tof
-# VERSION: 1.3
+# 名称：内容搜索
+# 说明：使用 grep/rg 搜索并替换文件内容。
+# 本文件是本机自用版本，仅在本仓库维护。
 # LICENSE: GNU General Public License v3.0
 #
 # This program is free software: you can redistribute it and/or modify
@@ -30,7 +29,8 @@ import re
 import shutil
 import subprocess
 import threading
-import locale
+import tempfile
+import stat
 
 import gi
 gi.require_version("Gtk",     "4.0")
@@ -40,7 +40,7 @@ from gi.repository import GObject, Gtk, Adw, GLib, Pango, Gdk, Nautilus
 # ---------------------------------------------------------------------------
 # i18n
 # ---------------------------------------------------------------------------
-_lang = locale.getlocale()[0] or ""
+_lang = "zh"
 
 if _lang.startswith("fr"):
     T = {
@@ -128,55 +128,62 @@ elif _lang.startswith("de"):
     }
 else:
     T = {
-        "menu_label":   "Search in files",
-        "title":        "Content Search",
-        "tab_search":   "Search",
-        "tab_replace":  "Search & Replace",
-        "pattern":      "Text to search…",
-        "replace_with": "Replace with…",
-        "extensions":   "Extensions (e.g. py,txt,md — empty = all)",
-        "recursive":    "Recursive (subfolders)",
-        "case":         "Case sensitive",
-        "regex":        "Regular expression",
-        "search":       "Search",
-        "preview":      "Preview",
-        "replace_all":  "Replace all",
-        "clear":        "Clear",
-        "tool":         "Tool:",
-        "results":      "{n} result(s)",
-        "results_max":  "{n} of {total} results — limit reached",
-        "no_results":   "No results.",
-        "searching":    "Searching…",
-        "replacing":    "Replacing…",
-        "previewing":   "Building preview…",
-        "replaced":     "{n} replacement(s) in {f} file(s) ✓",
-        "preview_info": "{n} replacement(s) in {f} file(s) — click “Replace all” to apply",
-        "open_file":    "Open file",
-        "open_gedit":   "Open with Gedit",
-        "open_folder":  "Open folder",
-        "copy_path":    "Copy path",
-        "col_file":     "File",
-        "col_line":     "Line",
-        "col_match":    "Content",
-        "error":        "Error: ",
-        "empty_search": "Enter a text to search for.",
-        "confirm_title":"Confirm replacement",
-        "confirm_body": "This will modify {f} file(s). A .bak backup will be created. Continue?",
-        "confirm_ok":   "Replace",
-        "confirm_cancel":"Cancel",
-        "backup_note":  ".bak backup created for each modified file.",
-        "toggle_all":   "Check / uncheck all",
-        "none_selected":"No line selected.",
+        "menu_label":   "搜索文件内容",
+        "title":        "内容搜索",
+        "tab_search":   "搜索",
+        "tab_replace":  "搜索并替换",
+        "pattern":      "要搜索的文本…",
+        "replace_with": "替换为…",
+        "extensions":   "扩展名（例如 py、txt、md；留空搜索全部）",
+        "recursive":    "搜索子目录",
+        "case":         "区分大小写",
+        "regex":        "正则表达式",
+        "search":       "搜索",
+        "preview":      "预览",
+        "replace_all":  "全部替换",
+        "clear":        "清空",
+        "tool":         "工具：",
+        "results":      "找到 {n} 个结果",
+        "results_max":  "显示 {n}/{total} 个结果，已达到上限",
+        "no_results":   "没有找到结果。",
+        "searching":    "正在搜索…",
+        "replacing":    "正在替换…",
+        "previewing":   "正在生成预览…",
+        "replaced":     "已在 {f} 个文件中替换 {n} 处 ✓",
+        "preview_info": "将在 {f} 个文件中替换 {n} 处，请点击“全部替换”应用",
+        "open_file":    "打开文件",
+        "open_gedit":   "用 Zed 打开",
+        "open_folder":  "打开所在目录",
+        "copy_path":    "复制路径",
+        "col_file":     "文件",
+        "col_line":     "行",
+        "col_match":    "内容",
+        "error":        "错误：",
+        "empty_search": "请输入要搜索的文本。",
+        "confirm_title":"确认替换",
+        "confirm_body": "此操作将修改 {f} 个文件，并为每个文件创建 .bak 备份。是否继续？",
+        "confirm_ok":   "替换",
+        "confirm_cancel":"取消",
+        "backup_note":  "每个被修改的文件都会创建 .bak 备份。",
+        "toggle_all":   "全选/取消全选",
+        "none_selected":"没有选择任何行。",
     }
 
 HAS_RG = shutil.which("rg") is not None
-HAS_GEDIT = shutil.which("gedit") is not None
+EDITOR_BIN = shutil.which("zeditor")
 MAX_RESULTS = 2000
+RESULT_LINE_RE = re.compile(r"^(.*):([0-9]+):(.*)$")
 
 
 def _nautilus_window():
     app = Gtk.Application.get_default()
     return app.get_active_window() if app else None
+
+
+def _copy_path(path):
+    display = Gdk.Display.get_default()
+    if display is not None:
+        display.get_clipboard().set(path)
 
 
 def _build_search_cmd(pattern, folder, recursive, exts_text, case, regex):
@@ -189,19 +196,31 @@ def _build_search_cmd(pattern, folder, recursive, exts_text, case, regex):
         if not recursive: cmd.append("--max-depth=1")
         for e in exts_list:
             cmd += ["--glob", f"*.{e}"]
-        cmd += [pattern, folder]
+        cmd += ["--glob", "!*.bak", "--", pattern, folder]
     else:
         cmd = ["grep", "-n", "-H", "--binary-files=without-match",
                "--exclude-dir=.git", "--exclude-dir=node_modules",
-               "--exclude-dir=__pycache__"]
+               "--exclude-dir=__pycache__", "--exclude=*.bak"]
         if recursive: cmd.append("-r")
         if not case:  cmd.append("-i")
         if not regex: cmd.append("-F")
         if exts_list:
             for e in exts_list:
                 cmd += ["--include", f"*.{e}"]
-        cmd += [pattern, folder]
+        if recursive:
+            cmd += ["--", pattern, folder]
+        else:
+            files = [entry.path for entry in os.scandir(folder)
+                     if entry.is_file()]
+            if not files:
+                return []
+            cmd += ["--", pattern] + files
     return cmd
+
+
+def _parse_result_line(line):
+    match = RESULT_LINE_RE.match(line)
+    return match.groups() if match else None
 
 
 # ---------------------------------------------------------------------------
@@ -476,19 +495,31 @@ class SearchWindow(Adw.Window):
     def _on_search(self):
         pattern = self._entry.get_text().strip()
         if not pattern:
+            self._status.set_text(T["empty_search"])
             return
         self._clear()
         self._btn.set_sensitive(False)
         self._status.set_text(T["searching"])
-        threading.Thread(target=self._do_search, args=(pattern,), daemon=True).start()
+        options = (
+            self._rec.get_active(),
+            self._ext.get_text(),
+            self._cas.get_active(),
+            self._reg.get_active(),
+        )
+        threading.Thread(
+            target=self._do_search, args=(pattern, options), daemon=True
+        ).start()
 
-    def _do_search(self, pattern):
-        cmd = _build_search_cmd(pattern, self._folder,
-                                self._rec.get_active(), self._ext.get_text(),
-                                self._cas.get_active(), self._reg.get_active())
+    def _do_search(self, pattern, options):
+        cmd = _build_search_cmd(pattern, self._folder, *options)
+        if not cmd:
+            GLib.idle_add(self._display_results, [])
+            return
         try:
             result = subprocess.run(cmd, capture_output=True, text=True,
                                     errors="replace", timeout=300)
+            if result.returncode not in (0, 1):
+                raise RuntimeError(result.stderr.strip() or "搜索命令失败")
             lines = result.stdout.splitlines()
         except Exception as e:
             if not self._closed:
@@ -504,8 +535,9 @@ class SearchWindow(Adw.Window):
         count = 0
         total = len(lines)
         for line in lines[:MAX_RESULTS]:
-            parts = line.split(":", 2)
-            if len(parts) < 3: continue
+            parts = _parse_result_line(line)
+            if not parts:
+                continue
             filepath, lineno, content_str = parts
             if not os.path.isfile(filepath): continue
             self._add_result(filepath, lineno, content_str)
@@ -553,7 +585,10 @@ class SearchWindow(Adw.Window):
 
     def _on_left_click(self, gesture, n_press, x, y, filepath):
         if n_press == 2:
-            subprocess.Popen(["xdg-open", filepath])
+            try:
+                subprocess.Popen(["xdg-open", filepath])
+            except OSError:
+                pass
 
     def _on_right_click(self, gesture, n, x, y, filepath):
         popover = Gtk.Popover()
@@ -572,14 +607,14 @@ class SearchWindow(Adw.Window):
             menu.append(b)
 
         make_btn(T["open_file"],
-                 lambda: subprocess.Popen(["xdg-open", filepath]))
-        if HAS_GEDIT:
+                 lambda: self._open_external(["xdg-open", filepath]))
+        if EDITOR_BIN:
             make_btn(T["open_gedit"],
-                     lambda: subprocess.Popen(["gedit", filepath]))
+                     lambda: self._open_external([EDITOR_BIN, filepath]))
         make_btn(T["open_folder"],
-                 lambda: subprocess.Popen(["xdg-open", os.path.dirname(filepath)]))
+                 lambda: self._open_external(["xdg-open", os.path.dirname(filepath)]))
         make_btn(T["copy_path"],
-                 lambda: Gdk.Display.get_default().get_clipboard().set(filepath))
+                 lambda: _copy_path(filepath))
 
         popover.set_child(menu)
         popover.set_parent(gesture.get_widget())
@@ -592,6 +627,13 @@ class SearchWindow(Adw.Window):
             if row is None: break
             self._list.remove(row)
         self._status.set_text("")
+
+    @staticmethod
+    def _open_external(args):
+        try:
+            subprocess.Popen(args, start_new_session=True)
+        except OSError:
+            pass
 
     # ───────────────────────────────────────────────────────────────────────
     # Search & Replace logic (page 2)
@@ -617,23 +659,35 @@ class SearchWindow(Adw.Window):
         if not pattern.strip():
             self._r_status.set_text(T["empty_search"])
             return
+        replacement = self._r_replace.get_text()
+        options = (
+            replacement,
+            self._r_rec.get_active(),
+            self._r_ext.get_text(),
+            self._r_cas.get_active(),
+            self._r_reg.get_active(),
+        )
         self._r_clear()
         self._r_btn_preview.set_sensitive(False)
         self._r_status.set_text(T["previewing"])
-        threading.Thread(target=self._do_preview, args=(pattern,), daemon=True).start()
+        threading.Thread(
+            target=self._do_preview, args=(pattern, options), daemon=True
+        ).start()
 
-    def _do_preview(self, pattern):
-        replacement = self._r_replace.get_text()
-        case   = self._r_cas.get_active()
-        regex  = self._r_reg.get_active()
+    def _do_preview(self, pattern, options):
+        replacement, recursive, exts, case, regex = options
 
         # 1. Trouver les fichiers concernés via grep/rg (liste de fichiers)
-        cmd = _build_search_cmd(pattern, self._folder,
-                                self._r_rec.get_active(), self._r_ext.get_text(),
-                                case, regex)
+        cmd = _build_search_cmd(
+            pattern, self._folder, recursive, exts, case, regex)
+        if not cmd:
+            GLib.idle_add(self._show_preview, [], 0)
+            return
         try:
             result = subprocess.run(cmd, capture_output=True, text=True,
                                     errors="replace", timeout=300)
+            if result.returncode not in (0, 1):
+                raise RuntimeError(result.stderr.strip() or "搜索命令失败")
             lines = result.stdout.splitlines()
         except Exception as e:
             if not self._closed:
@@ -658,8 +712,8 @@ class SearchWindow(Adw.Window):
         edits = []   # (filepath, lineno, before, after)
         files_set = set()
         for line in lines[:MAX_RESULTS]:
-            parts = line.split(":", 2)
-            if len(parts) < 3:
+            parts = _parse_result_line(line)
+            if not parts:
                 continue
             filepath, lineno, before = parts
             if not os.path.isfile(filepath):
@@ -776,10 +830,10 @@ class SearchWindow(Adw.Window):
         regex  = self._r_reg.get_active()
 
         # Regrouper les numéros de ligne sélectionnés par fichier
-        targets = {}   # filepath -> set(lineno_int)
+        targets = {}   # filepath -> {line_number: previewed_line}
         for filepath, lineno, before, after in self._selected_edits:
             try:
-                targets.setdefault(filepath, set()).add(int(lineno))
+                targets.setdefault(filepath, {})[int(lineno)] = before
             except ValueError:
                 continue
 
@@ -802,25 +856,50 @@ class SearchWindow(Adw.Window):
 
         total_repl = 0
         nfiles = 0
-        for filepath, linenos in targets.items():
+        for filepath, line_targets in targets.items():
             try:
-                with open(filepath, "r", encoding="utf-8", errors="replace") as f:
-                    lines = f.readlines()
+                with open(filepath, "rb") as f:
+                    raw = f.read()
+                encoding = "utf-8-sig" if raw.startswith(b"\xef\xbb\xbf") else "utf-8"
+                lines = raw.decode(encoding).splitlines(keepends=True)
                 changed = False
                 file_repl = 0
                 for idx, line in enumerate(lines):
                     # idx+1 = numéro de ligne (1-based)
-                    if (idx + 1) in linenos:
+                    expected = line_targets.get(idx + 1)
+                    if expected is not None and line.rstrip("\r\n") == expected:
                         new_line, n = rx.subn(replacement, line)
                         if n > 0 and new_line != line:
                             lines[idx] = new_line
                             file_repl += n
                             changed = True
                 if changed:
-                    # Sauvegarde .bak
-                    shutil.copy2(filepath, filepath + ".bak")
-                    with open(filepath, "w", encoding="utf-8") as f:
-                        f.writelines(lines)
+                    backup = filepath + ".bak"
+                    backup_index = 1
+                    while os.path.exists(backup):
+                        backup = f"{filepath}.bak.{backup_index}"
+                        backup_index += 1
+                    shutil.copy2(filepath, backup)
+
+                    fd, temp_path = tempfile.mkstemp(
+                        prefix=".nautilus-replace-",
+                        dir=os.path.dirname(filepath),
+                    )
+                    try:
+                        os.fchmod(fd, stat.S_IMODE(os.stat(filepath).st_mode))
+                        with os.fdopen(fd, "wb") as f:
+                            f.write("".join(lines).encode(encoding))
+                        os.replace(temp_path, filepath)
+                    except Exception:
+                        try:
+                            os.close(fd)
+                        except OSError:
+                            pass
+                        try:
+                            os.unlink(temp_path)
+                        except OSError:
+                            pass
+                        raise
                     total_repl += file_repl
                     nfiles += 1
             except Exception:
@@ -863,7 +942,10 @@ class SearchContentKeyHandler(GObject.GObject):
         app = Gtk.Application.get_default()
         if app is None:
             return True
-        for win in app.get_windows():
+        windows = set(app.get_windows())
+        for win in self._hooked - windows:
+            self._hooked.remove(win)
+        for win in windows:
             if win in self._hooked:
                 continue
             self._hooked.add(win)
@@ -904,7 +986,7 @@ class SearchContentExtension(GObject.GObject, Nautilus.MenuProvider):
         item = Nautilus.MenuItem(
             name  = "SearchContent::OpenFolder",
             label = T["menu_label"],
-            tip   = "Search text content in files",
+            tip   = "搜索文件中的文本内容",
             icon  = "edit-find-symbolic",
         )
         item.connect("activate", lambda *_: SearchWindow(path).present())
@@ -917,7 +999,7 @@ class SearchContentExtension(GObject.GObject, Nautilus.MenuProvider):
         item = Nautilus.MenuItem(
             name  = "SearchContent::Open",
             label = T["menu_label"],
-            tip   = "Search text content in files",
+            tip   = "搜索文件中的文本内容",
             icon  = "edit-find-symbolic",
         )
         item.connect("activate", lambda *_: SearchWindow(path).present())

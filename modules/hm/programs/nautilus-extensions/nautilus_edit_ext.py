@@ -1,4 +1,6 @@
+# 本文件是本机自用版本，仅在本仓库维护。
 from gi.repository import GObject, Nautilus
+import shutil
 import subprocess
 
 
@@ -7,11 +9,21 @@ class EditFileExtension(GObject.GObject, Nautilus.MenuProvider):
 
     def __init__(self):
         super().__init__()
-        self.editor = "zeditor"
-        self.extensions = (".py", ".sh", ".txt", ".md", ".json", ".yml", ".conf")
+        self.editor = shutil.which("zeditor")
+        self.extensions = frozenset((
+            ".py", ".sh", ".txt", ".md", ".json", ".yml", ".yaml",
+            ".conf", ".toml", ".nix",
+        ))
+
+    @staticmethod
+    def _spawn(args):
+        try:
+            subprocess.Popen(args, start_new_session=True)
+        except (OSError, ValueError):
+            pass
 
     def get_file_items(self, files):
-        if not files:
+        if not self.editor or not files:
             return []
 
         for file in files:
@@ -22,24 +34,26 @@ class EditFileExtension(GObject.GObject, Nautilus.MenuProvider):
 
         item = Nautilus.MenuItem(
             name="EditFileExtension::EditFile",
-            label="Open with Zed",
-            tip="Open the selected files in Zed",
+            label="用 Zed 打开",
+            tip="使用 Zed 打开选中的文件",
         )
         item.connect("activate", self.menu_activate_cb, files)
         return [item]
 
     def menu_activate_cb(self, menu, files):
         filepaths = [file.get_location().get_path() for file in files]
-        subprocess.Popen([self.editor, *filepaths])
+        filepaths = [p for p in filepaths if p]
+        if filepaths:
+            self._spawn([self.editor, *filepaths])
 
     def get_background_items(self, folder):
-        if folder is None or folder.get_uri_scheme() != "file":
+        if not self.editor or folder is None or folder.get_uri_scheme() != "file":
             return []
 
         item = Nautilus.MenuItem(
             name="EditFileExtension::EditFolder",
-            label="Open Folder with Zed",
-            tip="Open this folder in Zed",
+            label="用 Zed 打开目录",
+            tip="使用 Zed 打开当前目录",
         )
         item.connect("activate", self.menu_activate_folder_cb, folder)
         return [item]
@@ -47,4 +61,4 @@ class EditFileExtension(GObject.GObject, Nautilus.MenuProvider):
     def menu_activate_folder_cb(self, menu, folder):
         path = folder.get_location().get_path()
         if path:
-            subprocess.Popen([self.editor, path])
+            self._spawn([self.editor, path])

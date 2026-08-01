@@ -9,8 +9,6 @@ Orion 的单机 NixOS flake，唯一配置输出是 `nixosConfigurations.mynixos
   `nix-instantiate`、`nix repl` 和 `nixos-rebuild`。最终切换由用户执行。
 - `nixd` 诊断和 `nixfmt` 格式化由 OpenCode/Zed 自动处理；OpenCode 和用户都不要手动调用它们。
   Zed 与 OpenCode 的配置共用 `modules/hm/common/nixd.nix`，改补全源、格式化或 suppress 只改这一处。
-- 未发现 README、CI 或任务运行器配置；不要猜测 npm、pytest 等命令。非 Nix 检查可用
-  `git diff --check`。
 
 ## 配置入口
 
@@ -24,9 +22,7 @@ Orion 的单机 NixOS flake，唯一配置输出是 `nixosConfigurations.mynixos
 - 不要修改 `modules/hm/ai-agent/opencode.nix`；当前会话依赖它的 OpenCode、nixd 和 formatter 配置。
 - `modules/hm/desktop/niri-config/` 由 `modules/hm/desktop/niri.nix` 递归挂载到
   `~/.config/niri`，包括 `test/`；改 Niri 直接改 `.kdl`，不要在 Nix 中重写。
-- ZIP 的双击默认处理程序在 `modules/hm/desktop/env.nix` 中设为 Nautilus；`unzip` 等包是命令行工具，
-  不要用 File Roller 替代该行为。
-- 微信/WPS 在 `modules/hm/programs/packages.nix` 中通过 `symlinkJoin` + `wrapProgram` 包装以接入 fcitx；
+ 微信/WPS 在 `modules/hm/programs/packages.nix` 中通过 `symlinkJoin` + `wrapProgram` 包装以接入 fcitx；
   升级时只换包名，不要破坏包装参数。
 - Niri 内屏当前 scale 是 `1.5`；fcitx5 的 XWayland 候选框依赖 `Xft.dpi = 144`。修改
   `outputs.kdl` 的 scale 时，必须同步检查 `fcitx5-rime-ice.nix` 与 `miscellaneous.kdl`。

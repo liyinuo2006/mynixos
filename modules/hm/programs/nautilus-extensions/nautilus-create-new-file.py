@@ -1,48 +1,18 @@
+# 本文件是本机自用版本，仅在本仓库维护。
 keybind = "<Primary><Alt>n"
 
 import gi
 from gi.repository import GObject, Adw, Gtk, Nautilus, Gio, GLib
-
-# L10n
-import gettext, locale, os
-
-try:
-    import polib
-except ModuleNotFoundError:
-    polib = None
-
-base_dir = os.path.dirname(__file__)
-locale_dir = os.path.join(base_dir, "nautilus-create-new-file-translations")
-
-lang = locale.getlocale()[0] or ""
-po_path = os.path.join(locale_dir, f"{lang}.po")
-if not os.path.exists(po_path) and "_" in lang:
-    lang = lang.split("_")[0]
-    po_path = os.path.join(locale_dir, f"{lang}.po")
-mo_path = os.path.join(locale_dir, f"{lang}.mo")
-
-if os.path.exists(po_path) and polib is not None:
-    # Compile .po to .mo if needed
-    if not os.path.exists(mo_path):
-        po = polib.pofile(po_path)
-        po.save_as_mofile(mo_path)
-    # Load translations
-    with open(mo_path, "rb") as f_mo:
-        trans = gettext.GNUTranslations(f_mo)
-    _ = trans.gettext
-else:
-    # Fallback to no translation
-    _ = lambda x: x
+import os
 
 
 class CreateFileDialog(Adw.Dialog):
-    def __init__(self, folder: Nautilus.FileInfo):
+    def __init__(self, target_dir):
         super().__init__()
 
-        self.target_dir = folder.get_location().get_path()
+        self.target_dir = target_dir
 
-        # Set up the dialog properties
-        self.set_title(_("New File"))
+        self.set_title("新建文件")
         self.set_content_width(450)
         root = Adw.ToolbarView()
         header_bar = Adw.HeaderBar()
@@ -61,51 +31,61 @@ class CreateFileDialog(Adw.Dialog):
         list_box = Gtk.ListBox(css_classes=["boxed-list-separate"])
         body.append(list_box)
 
-        # Create the entry for the file name
-        self.file_name = Adw.EntryRow(title=_("File Name"))
+        self.file_name = Adw.EntryRow(title="文件名")
         list_box.append(self.file_name)
-        self.file_name.connect("entry-activated", lambda *_: self.creaet_file())
+        self.file_name.connect("entry-activated", lambda *_: self.create_file())
 
-        # Create submit button to call the creaet_file method
         self.submit_button = Gtk.Button(
-            label=_("Create"),
+            label="创建",
             css_classes=["pill", "suggested-action"],
             halign=Gtk.Align.CENTER,
             margin_top=8,
         )
         body.append(self.submit_button)
-        self.submit_button.connect("clicked", lambda *_: self.creaet_file(), None)
+        self.submit_button.connect("clicked", lambda *_: self.create_file(), None)
 
         self.set_child(root)
 
-    def creaet_file(self):
-        file_name = self.file_name.get_text()
-        if not file_name:
+    def create_file(self):
+        file_name = self.file_name.get_text().strip()
+        if (
+            not file_name
+            or file_name in {".", ".."}
+            or os.path.basename(file_name) != file_name
+        ):
             return
 
-        # check if the file already exists, if it does, append a number to the file name
-        import os
         base_name, ext = os.path.splitext(file_name)
         counter = 1
-        while os.path.exists(f"{self.target_dir}/{file_name}"):
+        while os.path.exists(os.path.join(self.target_dir, file_name)):
             file_name = f"{base_name}_{counter}{ext}"
             counter += 1
 
-        # create the file via GIO
         final_path = os.path.join(self.target_dir, file_name)
         gfile = Gio.File.new_for_path(final_path)
-        gfile.replace_contents(b"", None, False, Gio.FileCreateFlags.NONE, None)
+        try:
+            gfile.replace_contents(
+                b"", None, False, Gio.FileCreateFlags.NONE, None)
+        except GLib.Error as exc:
+            dlg = Adw.MessageDialog(
+                heading="创建失败",
+                body=str(exc),
+            )
+            dlg.add_response("ok", "确定")
+            dlg.present()
+            return
         self.close()
-        
-        # select file via D-Bus
+
         uri = gfile.get_uri()
+        escaped_uri = uri.replace("\\", "\\\\").replace("'", "\\'")
+
         def _select():
             GLib.spawn_async(
                 ['gdbus','call','--session',
                  '--dest','org.freedesktop.FileManager1',
                  '--object-path','/org/freedesktop/FileManager1',
                  '--method','org.freedesktop.FileManager1.ShowItems',
-                 f"['{uri}']", "''"],
+                  f"['{escaped_uri}']", "''"],
                 flags=GLib.SpawnFlags.SEARCH_PATH)
             return False
         GLib.timeout_add(100, _select)
@@ -117,13 +97,19 @@ class CreateFileExtension(GObject.GObject, Nautilus.MenuProvider):
         self.folder_for_window = {}
 
     def get_background_items(self, folder: Nautilus.FileInfo):
+        if folder is None or folder.get_uri_scheme() != "file":
+            return []
+        path = folder.get_location().get_path()
+        if not path:
+            return []
+
         windows = set()
 
         for window in Gtk.Window.get_toplevels():
             windows.add(window)
             if not window.is_active():
                 continue
-            self.folder_for_window[window] = folder
+            self.folder_for_window[window] = path
             if window.lookup_action("create-file") is None:
                 action = Gio.SimpleAction.new("create-file", None)
                 action.connect("activate", self.action_activated)
@@ -138,11 +124,11 @@ class CreateFileExtension(GObject.GObject, Nautilus.MenuProvider):
 
         menu_item = Nautilus.MenuItem(
             name="CreateFileExtension::CreateFile",
-            label=_("New File…"),
+            label="新建文件…",
         )
         menu_item.connect(
             "activate",
-            lambda *_: CreateFileDialog(folder).present(Gtk.Application.get_default().get_active_window()),
+            lambda *_: CreateFileDialog(path).present(Gtk.Application.get_default().get_active_window()),
             None,
         )
         return [
@@ -152,7 +138,7 @@ class CreateFileExtension(GObject.GObject, Nautilus.MenuProvider):
     def action_activated(self, action, parameter):
         for window in Gtk.Window.get_toplevels():
             if window.is_active():
-                folder = self.folder_for_window.get(window)
-                if folder is not None:
-                    CreateFileDialog(folder).present(window)
+                path = self.folder_for_window.get(window)
+                if path is not None:
+                    CreateFileDialog(path).present(window)
                 break

@@ -1,10 +1,9 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 #
-# NAME: Video to Audio — Nautilus Python Extension
-# DESC: Extract audio from video files using ffmpeg
-# AUTHOR: Tof
-# VERSION: 1.0
+# 名称：视频提取音频
+# 说明：使用 ffmpeg 从视频中批量提取音频。
+# 本文件是本机自用版本，仅在本仓库维护。
 # LICENSE: GNU General Public License v3.0
 #
 # This program is free software: you can redistribute it and/or modify
@@ -28,7 +27,6 @@ import os
 import shutil
 import subprocess
 import threading
-import locale
 import re
 
 import gi
@@ -39,7 +37,7 @@ from gi.repository import GObject, Gtk, Adw, GLib, Pango, Gdk, Nautilus
 # ---------------------------------------------------------------------------
 # i18n
 # ---------------------------------------------------------------------------
-_lang = locale.getlocale()[0] or ""
+_lang = "zh"
 
 if _lang.startswith("fr"):
     T = {
@@ -89,31 +87,35 @@ elif _lang.startswith("de"):
     }
 else:
     T = {
-        "menu_label":   "Extract audio",
-        "title":        "Audio Extraction",
-        "format":       "Format",
-        "quality":      "Quality",
-        "quality_high": "High (320 kbps)",
-        "quality_med":  "Medium (192 kbps)",
-        "quality_low":  "Low (128 kbps)",
-        "quality_copy": "Copy stream (no re-encoding)",
-        "convert":      "Extract",
-        "cancel":       "Cancel",
-        "close":        "Close",
-        "processing":   "Extracting…",
+        "menu_label":   "提取音频",
+        "title":        "音频提取",
+        "format":       "格式",
+        "quality":      "质量",
+        "quality_high": "高（320 kbps）",
+        "quality_med":  "中（192 kbps）",
+        "quality_low":  "低（128 kbps）",
+        "quality_copy": "复制音频流（不重新编码）",
+        "convert":      "提取",
+        "cancel":       "取消",
+        "close":        "关闭",
+        "processing":   "正在提取…",
         "file_done":    "✓ {name}",
         "file_error":   "✗ {name}",
-        "all_done":     "Extraction complete — {ok} of {total} succeeded.",
-        "cancelled":    "Extraction cancelled.",
-        "overwrite":    "File already exists — will be overwritten.",
-        "dest_folder":  "Destination",
-        "choose":       "Choose…",
-        "same_as_src":  "Same folder as source",
+        "all_done":     "提取完成：成功 {ok}/{total} 个。",
+        "cancelled":    "已取消提取。",
+        "overwrite":    "目标文件已存在，将覆盖。",
+        "dest_folder":  "目标目录",
+        "choose":       "选择…",
+        "same_as_src":  "与源文件相同的目录",
     }
 
 # Extensions vidéo supportées
 VIDEO_EXTS = {".mp4", ".mkv", ".avi", ".mov", ".webm", ".flv", ".wmv",
-              ".m4v", ".mpg", ".mpeg", ".3gp", ".ts", ".ogv", ".vob"}
+              ".m4v", ".mpg", ".mpeg", ".3gp", ".ts", ".ogv", ".vob",
+              ".m2ts", ".mts", ".mxf", ".asf", ".rmvb"}
+
+FFMPEG_BIN = shutil.which("ffmpeg")
+FFPROBE_BIN = shutil.which("ffprobe")
 
 # Formats audio disponibles (extension, codec ffmpeg)
 AUDIO_FORMATS = [
@@ -135,12 +137,16 @@ def _nautilus_window():
 
 
 def _get_duration(path):
-    """Retourne la durée en secondes d'un fichier vidéo via ffprobe."""
+    """通过 ffprobe 获取视频时长。"""
+    if not FFPROBE_BIN:
+        return 0.0
     try:
         out = subprocess.check_output(
-            ["ffprobe", "-v", "error", "-show_entries", "format=duration",
+            [FFPROBE_BIN, "-v", "error", "-show_entries", "format=duration",
              "-of", "default=noprint_wrappers=1:nokey=1", path],
-            stderr=subprocess.DEVNULL).decode().strip()
+            stderr=subprocess.DEVNULL,
+            timeout=30,
+        ).decode().strip()
         return float(out)
     except Exception:
         return 0.0
@@ -228,6 +234,8 @@ class VideoToAudioWindow(Adw.Window):
         self._process   = None
         self._cancelled = False
         self._done      = False
+        self._running   = False
+        self._alive     = True
 
         tv  = Adw.ToolbarView()
         hdr = Adw.HeaderBar()
@@ -293,8 +301,7 @@ class VideoToAudioWindow(Adw.Window):
 
         # ── Liste des fichiers ────────────────────────────────────────────────
         files_label = Gtk.Label()
-        files_label.set_markup(f"<b>{len(video_files)} fichier(s)</b>" if _lang.startswith("fr")
-                               else f"<b>{len(video_files)} file(s)</b>")
+        files_label.set_markup(f"<b>{len(video_files)} 个文件</b>")
         files_label.set_halign(Gtk.Align.START)
         files_label.set_margin_start(16); files_label.set_margin_end(16)
         files_label.set_margin_top(8)
@@ -363,9 +370,33 @@ class VideoToAudioWindow(Adw.Window):
         tv.set_content(main)
         self.set_content(tv)
 
+        self.connect("close-request", self._on_close_request)
+
+    def _on_close_request(self, *_):
+        # 转换进行中直接关闭：取消进程，后台线程随之退出，
+        # 后续 idle 回调由 _alive 保护。
+        if self._running:
+            self._cancelled = True
+            self._kill_process()
+        self._alive = False
+        return False
+
+    def _kill_process(self):
+        if self._process and self._process.poll() is None:
+            try:
+                import signal
+                os.killpg(os.getpgid(self._process.pid), signal.SIGKILL)
+            except Exception:
+                try:
+                    self._process.kill()
+                except Exception:
+                    pass
+
     def _on_fmt_changed(self, drop, _param):
-        """FLAC et WAV → forcer 'copy' désactivé car incompatible avec ces codecs."""
-        pass
+        """FLAC/WAV 与 copy 模式不兼容：自动切回标准质量。"""
+        fmt = AUDIO_FORMATS[drop.get_selected()][0]
+        if fmt in ("flac", "wav") and self._qual_drop.get_selected() == 3:
+            self._qual_drop.set_selected(1)
 
     def _on_choose_folder(self, _btn):
         """Ouvre un sélecteur de dossier."""
@@ -390,34 +421,48 @@ class VideoToAudioWindow(Adw.Window):
             pass
 
     def _on_convert(self, _):
+        self._cancelled = False
+        self._done = False
         self._btn_convert.set_sensitive(False)
         self._fmt_drop.set_sensitive(False)
         self._qual_drop.set_sensitive(False)
+        self._dest_btn.set_sensitive(False)
+        self._btn_cancel.set_sensitive(True)
         self._progress.set_visible(True)
         self._status.set_text(T["processing"])
-        threading.Thread(target=self._run_conversions, daemon=True).start()
-
-    def _run_conversions(self):
+        # 在主线程快照选项，工作线程只读这些固定值。
         fmt_idx  = self._fmt_drop.get_selected()
         qual_idx = self._qual_drop.get_selected()
+        dest     = self._dest_folder
+        self._running = True
+        threading.Thread(
+            target=self._run_conversions,
+            args=(fmt_idx, qual_idx, dest),
+            daemon=True,
+        ).start()
+
+    def _run_conversions(self, fmt_idx, qual_idx, dest_folder):
         ext, codec = AUDIO_FORMATS[fmt_idx]
         quality    = QUALITIES[qual_idx]
 
         total = len(self._videos)
         ok    = 0
-        time_re = re.compile(r"time=(\d+:\d+:\d+\.\d+)")
-
         for i, video in enumerate(self._videos):
             if self._cancelled:
                 break
 
             src_dir   = os.path.dirname(video)
-            dest_dir  = self._dest_folder if self._dest_folder else src_dir
+            dest_dir  = dest_folder if dest_folder else src_dir
             name      = os.path.splitext(os.path.basename(video))[0]
             output    = os.path.join(dest_dir, f"{name}.{ext}")
+            # 已存在时不覆盖，自动追加序号。
+            counter = 1
+            while os.path.exists(output):
+                output = os.path.join(dest_dir, f"{name} ({counter}).{ext}")
+                counter += 1
             duration  = _get_duration(video)
 
-            cmd = ["ffmpeg", "-y", "-i", video, "-vn", "-progress", "pipe:1",
+            cmd = [FFMPEG_BIN, "-y", "-i", video, "-vn", "-progress", "pipe:1",
                    "-nostats"]
             if quality == "copy":
                 cmd += ["-acodec", "copy"]
@@ -461,12 +506,16 @@ class VideoToAudioWindow(Adw.Window):
         GLib.idle_add(self._on_done, ok, total)
 
     def _update_progress(self, overall, file_frac):
+        if not self._alive:
+            return False
         self._progress.set_fraction(overall)
         self._progress.set_text(f"{int(overall * 100)} %")
         self._progress.set_show_text(True)
         return False
 
     def _update_file_status(self, idx, success):
+        if not self._alive:
+            return False
         lbl = self._file_labels[idx]
         if success:
             lbl.set_text("✓")
@@ -478,29 +527,30 @@ class VideoToAudioWindow(Adw.Window):
 
     def _on_done(self, ok, total):
         self._done = True
+        self._running = False
+        if not self._alive:
+            return False
         self._progress.set_visible(False)
-        self._btn_cancel.set_visible(False)
-        self._btn_convert.set_visible(False)
-        self._btn_close.set_visible(True)
+        self._fmt_drop.set_sensitive(True)
+        self._qual_drop.set_sensitive(True)
+        self._dest_btn.set_sensitive(True)
         if self._cancelled:
-            self._status.set_text(T["cancelled"])
+            # 取消后保持窗口可用，允许直接再次提取。
+            self._btn_cancel.set_sensitive(True)
+            self._btn_convert.set_sensitive(True)
+            self._status.set_text("已取消，可重新提取。")
         else:
+            self._btn_cancel.set_visible(False)
+            self._btn_convert.set_visible(False)
+            self._btn_close.set_visible(True)
             self._status.set_text(T["all_done"].format(ok=ok, total=total))
         return False
 
     def _on_cancel(self, _):
         self._cancelled = True
-        if self._process and self._process.poll() is None:
-            try:
-                import signal
-                os.killpg(os.getpgid(self._process.pid), signal.SIGKILL)
-            except Exception:
-                try:
-                    self._process.kill()
-                except Exception:
-                    pass
-        if not self._done:
-            self.close()
+        self._kill_process()
+        self._btn_cancel.set_sensitive(False)
+        self._status.set_text("正在取消…")
 
 
 # ---------------------------------------------------------------------------
@@ -511,7 +561,7 @@ class VideoToAudioExtension(GObject.GObject, Nautilus.MenuProvider):
     __gtype_name__ = "VideoToAudioExtension"
 
     def get_file_items(self, files):
-        if not files:
+        if not FFMPEG_BIN or not files:
             return []
         # Filtrer les vidéos
         videos = []
@@ -534,7 +584,7 @@ class VideoToAudioExtension(GObject.GObject, Nautilus.MenuProvider):
         item = Nautilus.MenuItem(
             name  = "VideoToAudio::Extract",
             label = T["menu_label"],
-            tip   = "Extract audio track from video files",
+            tip   = "从视频文件中提取音频",
             icon  = "audio-x-generic-symbolic",
         )
         item.connect("activate", lambda *_: VideoToAudioWindow(videos).present())

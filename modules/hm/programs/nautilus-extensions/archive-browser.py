@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 #
-# NAME: Archive Browser — Nautilus Python Extension
-# AUTHOR: Tof
-# VERSION: 1.0
+# 名称：压缩包浏览器
+# 说明：浏览、解压和创建压缩包。
+# 本文件是本机自用版本，仅在本仓库维护。
 # LICENSE: GNU General Public License v3.0
 #
 # This program is free software: you can redistribute it and/or modify
@@ -32,7 +32,6 @@ import shutil
 import subprocess
 import tempfile
 import threading
-import locale
 import gi
 gi.require_version("Gtk", "4.0")
 gi.require_version("Adw", "1")
@@ -44,14 +43,14 @@ try:
 except ImportError:
     HAS_LIBARCHIVE = False
 
-SZ_BIN    = shutil.which("7z")    or "/usr/bin/7z"
-UNRAR_BIN = shutil.which("unrar") or "/usr/bin/unrar"
-RAR_BIN   = shutil.which("rar")   or "/usr/bin/rar"
+SZ_BIN = shutil.which("7z")
+UNRAR_BIN = shutil.which("unrar")
+RAR_BIN = shutil.which("rar")
 
 ARCHIVE_EXTS = {".zip", ".7z", ".tar", ".gz", ".bz2", ".xz",
                 ".rar", ".tgz", ".tbz2", ".cab", ".iso", ".001"}
 
-_lang = locale.getlocale()[0] or ""
+_lang = "zh"
 if _lang.startswith("fr"):
     T = {
         # Navigation
@@ -141,45 +140,45 @@ elif _lang.startswith("de"):
 else:
     T = {
         # Navigation
-        "menu_label":          "Browse archive",
-        "title":               "Archive Browser",
-        "filter":              "Filter…",
-        "go_up":               "Parent folder",
-        "refresh":             "Refresh",
-        "home":                "Home",
+        "menu_label":          "浏览压缩包",
+        "title":               "压缩包浏览器",
+        "filter":              "筛选…",
+        "go_up":               "上一级",
+        "refresh":             "刷新",
+        "home":                "主目录",
         # Extraction
-        "extract_all":         "Extract all",
-        "extract_sel":         "Extract selection",
-        "col_name":            "Name",
-        "col_size":            "Size",
+        "extract_all":         "全部解压",
+        "extract_sel":         "解压选中项",
+        "col_name":            "名称",
+        "col_size":            "大小",
         # Password
-        "pwd_title":           "Protected archive",
-        "pwd_body":            "This archive is encrypted. Enter the password:",
-        "pwd_placeholder":     "Password",
-        "pwd_cancel":          "Cancel",
-        "pwd_ok":              "Open",
-        "pwd_wrong":           "Wrong password",
+        "pwd_title":           "受密码保护的压缩包",
+        "pwd_body":            "此压缩包已加密，请输入密码：",
+        "pwd_placeholder":     "密码",
+        "pwd_cancel":          "取消",
+        "pwd_ok":              "打开",
+        "pwd_wrong":           "密码错误，请重试。",
         # Creator
-        "create_label":        "Create archive",
-        "create_title":        "Create archive",
-        "create_name":         "Archive name",
-        "create_format":       "Format",
-        "create_level":        "Compression",
-        "create_pwd":          "Password (optional)",
-        "create_split":        "Split into volumes (MB, 0=no)",
-        "create_btn":          "Create",
-        "creating":            "Creating…",
-        "create_done":         "Archive created",
-        "create_err":          "Creation error",
+        "create_label":        "创建压缩包",
+        "create_title":        "创建压缩包",
+        "create_name":         "压缩包名称",
+        "create_format":       "格式",
+        "create_level":        "压缩级别",
+        "create_pwd":          "密码（可选）",
+        "create_split":        "分卷大小（MB，0=不分卷）",
+        "create_btn":          "创建",
+        "creating":            "正在创建…",
+        "create_done":         "压缩包已创建",
+        "create_err":          "创建失败",
         # XDG folders
-        "user_dir_DESKTOP":    "Desktop",
-        "user_dir_DOWNLOAD":   "Downloads",
-        "user_dir_TEMPLATES":  "Templates",
-        "user_dir_PUBLICSHARE":"Public",
-        "user_dir_DOCUMENTS":  "Documents",
-        "user_dir_MUSIC":      "Music",
-        "user_dir_PICTURES":   "Pictures",
-        "user_dir_VIDEOS":     "Videos",
+        "user_dir_DESKTOP":    "桌面",
+        "user_dir_DOWNLOAD":   "下载",
+        "user_dir_TEMPLATES":  "模板",
+        "user_dir_PUBLICSHARE":"公共",
+        "user_dir_DOCUMENTS":  "文档",
+        "user_dir_MUSIC":      "音乐",
+        "user_dir_PICTURES":   "图片",
+        "user_dir_VIDEOS":     "视频",
     }
 
 # ---------------------------------------------------------------------------
@@ -200,11 +199,15 @@ def _is_encrypted(path):
     """Détecte si l'archive est protégée par mot de passe."""
     try:
         if _is_rar(path):
+            if not UNRAR_BIN:
+                return False
             r = subprocess.run([UNRAR_BIN, "v", path],
                                capture_output=True, text=True, timeout=5)
             out = r.stdout + r.stderr
             return "password" in out.lower() or "encrypted" in out.lower()
         else:
+            if not SZ_BIN:
+                return False
             r = subprocess.run([SZ_BIN, "l", "-p", path],
                                capture_output=True, text=True, timeout=5)
             out = r.stdout + r.stderr
@@ -326,68 +329,53 @@ with libarchive.file_reader(sys.argv[1]) as a:
     return entries
 
 def _extract(archive, names, dst, progress_cb=None, password=""):
-    """Extraction via 7z/unrar avec progression optionnelle."""
+    """在后台线程中解压，并返回 (是否成功, 错误信息)。"""
     os.makedirs(dst, exist_ok=True)
-    if _is_7z_multivolume(archive):
-        # 7z gère les volumes automatiquement
-        pwd_args = ["-p" + password] if password else []
-        cmd = [SZ_BIN, "x", archive, f"-o{dst}", "-y",
-               "-bsp1", "-bso0"] + pwd_args + names
-        proc = subprocess.Popen(cmd, stdout=subprocess.PIPE,
-                                stderr=subprocess.PIPE)
-        BS = bytes([8])
-        buf = b""
-        while True:
-            ch = proc.stdout.read(1)
-            if not ch:
-                break
-            if ch == BS:
-                seg = buf.decode("utf-8", errors="replace").strip()
-                buf = b""
-                if seg:
-                    m = re.search(r"([0-9]{1,3}) *%", seg)
-                    if m and progress_cb:
-                        progress_cb(int(m.group(1)) / 100.0)
-            else:
-                buf += ch
-        proc.wait()
-        return
+
     if _is_rar(archive):
+        if not UNRAR_BIN:
+            return False, "未找到 unrar。"
         pwd_arg = "-p" + password if password else "-p-"
         cmd = [UNRAR_BIN, "x", "-y", pwd_arg, archive] + names + [dst + "/"]
-        proc = subprocess.Popen(cmd, stdout=subprocess.PIPE,
-                                stderr=subprocess.STDOUT, text=True)
-        for line in proc.stdout:
-            if progress_cb:
-                line = line.strip()
-                # unrar affiche des % comme "  3%"
-                m = re.search("([0-9]+)%", line)
-                if m:
-                    progress_cb(int(m.group(1)) / 100.0)
-        proc.wait()
     else:
-        # 7z avec -bsp1 affiche "xx%" sur stdout
+        if not SZ_BIN:
+            return False, "未找到 7z。"
         pwd_args = ["-p" + password] if password else []
         cmd = [SZ_BIN, "x", archive, f"-o{dst}", "-y",
                "-bsp1", "-bso0"] + pwd_args + names
-        proc = subprocess.Popen(cmd, stdout=subprocess.PIPE,
-                                stderr=subprocess.PIPE)
-        BS = bytes([8])  # backspace — séparateur 7z
-        buf = b""
-        while True:
-            ch = proc.stdout.read(1)
-            if not ch:
-                break
-            if ch == BS:
-                seg = buf.decode("utf-8", errors="replace").strip()
-                buf = b""
-                if seg:
-                    m = re.search("([0-9]{1,3}) *%", seg)
-                    if m and progress_cb:
-                        progress_cb(int(m.group(1)) / 100.0)
-            else:
-                buf += ch
-        proc.wait()
+
+    try:
+        proc = subprocess.Popen(
+            cmd,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+        )
+    except OSError as exc:
+        return False, str(exc)
+
+    output = bytearray()
+    segment = bytearray()
+
+    def consume_segment():
+        if not segment:
+            return
+        output.extend(segment)
+        match = re.search(rb"([0-9]{1,3})\s*%", segment)
+        if match and progress_cb:
+            progress_cb(int(match.group(1)) / 100.0)
+        segment.clear()
+
+    for chunk in iter(lambda: proc.stdout.read(1), b""):
+        if chunk in (b"\r", b"\n", b"\b"):
+            consume_segment()
+        else:
+            segment.extend(chunk)
+    consume_segment()
+    return_code = proc.wait()
+    if return_code == 0:
+        return True, ""
+    error = bytes(output).decode("utf-8", errors="replace").strip()
+    return False, error[-500:] or f"解压命令退出码：{return_code}"
 
 def _fmt_size(s):
     try:
@@ -683,20 +671,26 @@ class FilePanel(Gtk.Box):
                 pass
 
     def _on_drop(self, target, value, x, y):
-        """Reçoit les fichiers droppés — les copie dans ce dossier."""
-        if isinstance(value, Gdk.FileList):
-            for gfile in value.get_files():
-                src  = gfile.get_path()
-                if not src: continue
-                dst  = os.path.join(self._path, os.path.basename(src))
+        """将拖入的文件复制到当前目录，复制过程不阻塞界面。"""
+        if not isinstance(value, Gdk.FileList):
+            return True
+
+        sources = [gfile.get_path() for gfile in value.get_files()]
+        sources = [src for src in sources if src]
+
+        def _copy():
+            for src in sources:
+                dst = os.path.join(self._path, os.path.basename(src))
                 try:
                     if os.path.isdir(src):
                         shutil.copytree(src, dst, dirs_exist_ok=True)
                     else:
                         shutil.copy2(src, dst)
-                except Exception:
+                except OSError:
                     pass
-            self.refresh()
+            GLib.idle_add(self.refresh)
+
+        threading.Thread(target=_copy, daemon=True).start()
         return True
 
 # ---------------------------------------------------------------------------
@@ -900,14 +894,18 @@ class ArchiveBrowserWindow(Adw.Window):
 
     def _do_load(self):
         entries = _list_archive(self._archive, self._password)
-        if not entries and not self._password:
+        if not entries and self._password:
+            self._password = ""
+            GLib.idle_add(self._ask_password, True)
+            return
+        if not entries:
             # Vérifier si l'archive est chiffrée
             if _is_encrypted(self._archive):
                 GLib.idle_add(self._ask_password)
                 return
         GLib.idle_add(self._apply, entries)
 
-    def _ask_password(self):
+    def _ask_password(self, wrong=False):
         """Dialog mot de passe Adw."""
         import gi
         gi.require_version("Adw", "1")
@@ -915,7 +913,7 @@ class ArchiveBrowserWindow(Adw.Window):
         dlg = Adw.MessageDialog(
             transient_for=self,
             heading=T["pwd_title"],
-            body=T["pwd_body"])
+            body=T["pwd_wrong"] if wrong else T["pwd_body"])
         entry = Gtk.Entry()
         entry.set_visibility(False)
         entry.set_input_purpose(Gtk.InputPurpose.PASSWORD)
@@ -1107,11 +1105,21 @@ class ArchiveBrowserWindow(Adw.Window):
             if not self._cache_dir or not os.path.isdir(self._cache_dir):
                 self._cache_dir = tempfile.mkdtemp(prefix="ab_cache_")
         # Extraire (hors lock pour ne pas bloquer)
-        _extract(self._archive, [name], self._cache_dir, password=self._password)
-        # Chercher le fichier extrait
-        base = os.path.basename(name)
+        success, _error = _extract(
+            self._archive, [name], self._cache_dir, password=self._password)
+        if not success:
+            return None
+
+        # 目录和文件都优先按压缩包内的完整路径查找。
+        extracted = os.path.join(self._cache_dir, name.rstrip("/"))
+        if os.path.exists(extracted):
+            with self._prefetch_lock:
+                self._cache_files[name] = extracted
+            return extracted
+
+        base = os.path.basename(name.rstrip("/"))
         for root, dirs, files in os.walk(self._cache_dir):
-            if base in files:
+            if base in files or base in dirs:
                 path = os.path.join(root, base)
                 with self._prefetch_lock:
                     self._cache_files[name] = path
@@ -1173,17 +1181,11 @@ class ArchiveBrowserWindow(Adw.Window):
         e = self._store.get_item(pos)
         if e.is_dir:
             return
-        tmp = tempfile.mkdtemp(prefix="ab_open_")
         def _work():
-            _extract(self._archive, [e.name], tmp, password=self._password)
-            # Chercher le fichier extrait
-            for root, dirs, files in os.walk(tmp):
-                for f in files:
-                    if f == os.path.basename(e.name):
-                        path = os.path.join(root, f)
-                        GLib.idle_add(lambda p=path: Gio.AppInfo.launch_default_for_uri(
-                            Gio.File.new_for_path(p).get_uri(), None))
-                        return
+            path = self._ensure_extracted(e.name)
+            if path:
+                GLib.idle_add(lambda p=path: Gio.AppInfo.launch_default_for_uri(
+                    Gio.File.new_for_path(p).get_uri(), None))
         threading.Thread(target=_work, daemon=True).start()
 
     # -- Extraction ----------------------------------------------------------
@@ -1244,7 +1246,16 @@ class ArchiveBrowserWindow(Adw.Window):
 
                 tmp = tempfile.mkdtemp(prefix="ab_flat_")
                 try:
-                    _extract(self._archive, names, tmp, progress_cb=_on_progress)
+                    success, error = _extract(
+                        self._archive,
+                        names,
+                        tmp,
+                        password=self._password,
+                        progress_cb=_on_progress,
+                    )
+                    if not success:
+                        GLib.idle_add(self._extract_done, dst, error)
+                        return
                     # Fichiers → extraction plate (sans arborescence)
                     for root, dirs, files in os.walk(tmp):
                         # Ignorer les sous-dossiers des dossiers sélectionnés
@@ -1277,13 +1288,31 @@ class ArchiveBrowserWindow(Adw.Window):
                 finally:
                     shutil.rmtree(tmp, ignore_errors=True)
             else:
-                _extract(self._archive, names, dst, password=self._password, progress_cb=_on_progress)
-            GLib.idle_add(self._extract_done, dst)
+                success, error = _extract(
+                    self._archive,
+                    names,
+                    dst,
+                    password=self._password,
+                    progress_cb=_on_progress,
+                )
+                if not success:
+                    GLib.idle_add(self._extract_done, dst, error)
+                    return
+            GLib.idle_add(self._extract_done, dst, None)
         threading.Thread(target=_work, daemon=True).start()
 
-    def _extract_done(self, dst):
+    def _extract_done(self, dst, error=None):
         self._prog_stop()
-        self._fs_panel.refresh()
+        if error:
+            dlg = Adw.MessageDialog(
+                transient_for=self,
+                heading="解压失败",
+                body=error,
+            )
+            dlg.add_response("ok", "确定")
+            dlg.present()
+        else:
+            self._fs_panel.refresh()
         return False
 
     # -- DnD -----------------------------------------------------------------
@@ -1353,9 +1382,13 @@ class ArchiveBrowserWindow(Adw.Window):
 class ArchiveCreatorWindow(Adw.Window):
     __gtype_name__ = "ArchiveCreatorWindow"
 
-    FORMATS = ["rar", "zip", "7z", "tar.gz", "tar.bz2", "tar.xz"]
-    LEVELS  = ["0 - Store", "1 - Fastest", "3 - Fast", "5 - Normal",
-                "7 - Maximum", "9 - Ultra"]
+    FORMATS = (
+        (["rar"] if RAR_BIN else [])
+        + (["zip", "7z"] if SZ_BIN else [])
+        + ["tar.gz", "tar.bz2", "tar.xz"]
+    )
+    LEVELS = ["0 - 不压缩", "1 - 最快", "3 - 较快", "5 - 标准",
+              "7 - 最大", "9 - 极限"]
 
     def __init__(self, source_paths):
         super().__init__()
@@ -1393,7 +1426,7 @@ class ArchiveCreatorWindow(Adw.Window):
         # Format
         box.append(Gtk.Label(label=T["create_format"], halign=Gtk.Align.START))
         self._fmt_combo = Gtk.DropDown.new_from_strings(self.FORMATS)
-        self._fmt_combo.set_selected(0)  # RAR par défaut
+        self._fmt_combo.set_selected(0)
         self._fmt_combo.connect("notify::selected", self._on_format_changed)
         box.append(self._fmt_combo)
 
@@ -1446,7 +1479,7 @@ class ArchiveCreatorWindow(Adw.Window):
 
     def _on_format_changed(self, combo, _):
         fmt = self.FORMATS[combo.get_selected()]
-        # Split uniquement pour rar et 7z
+        # 仅 RAR 和 7z 支持分卷。
         self._split_box.set_visible(fmt in ("rar", "7z"))
 
     def _on_create(self, _):
@@ -1456,7 +1489,11 @@ class ArchiveCreatorWindow(Adw.Window):
         pwd     = self._pwd_entry.get_text().strip()
         split   = self._split_entry.get_text().strip()
 
-        if not name:
+        if (
+            not name
+            or name in {".", ".."}
+            or os.path.basename(name) != name
+        ):
             return
 
         # Ajouter l'extension si manquante
@@ -1465,6 +1502,12 @@ class ArchiveCreatorWindow(Adw.Window):
             name += ext
 
         out_path = os.path.join(self._dest_dir, name)
+        base, suffix = os.path.splitext(name)
+        counter = 1
+        while os.path.exists(out_path):
+            out_path = os.path.join(
+                self._dest_dir, f"{base} ({counter}){suffix}")
+            counter += 1
 
         # Niveaux : index 0-5 → valeurs réelles
         lvl_map = [0, 1, 3, 5, 7, 9]
@@ -1537,7 +1580,7 @@ class ArchiveCreatorWindow(Adw.Window):
             cwd = None  # tar gère lui-même le -C, pas besoin de cwd subprocess
 
         else:
-            raise ValueError(f"Format inconnu: {fmt}")
+            raise ValueError(f"未知格式：{fmt}")
 
         result = subprocess.run(cmd, capture_output=True, cwd=cwd)
         if result.returncode != 0:
@@ -1549,7 +1592,7 @@ class ArchiveCreatorWindow(Adw.Window):
         if error:
             dlg = Adw.MessageDialog(transient_for=self,
                 heading=T["create_err"], body=error)
-            dlg.add_response("ok", "OK")
+            dlg.add_response("ok", "确定")
             dlg.present()
         else:
             # Ouvrir le dossier de destination dans Nautilus
@@ -1612,7 +1655,7 @@ class ArchiveBrowserExtension(GObject.GObject, Nautilus.MenuProvider):
             item = Nautilus.MenuItem(
                 name="ArchiveBrowser::Open",
                 label=T["menu_label"],
-                tip="Browse archive contents",
+                tip="浏览压缩包内容",
                 icon="package-x-generic",
             )
             item.connect("activate", lambda *_:
@@ -1633,7 +1676,7 @@ class ArchiveBrowserExtension(GObject.GObject, Nautilus.MenuProvider):
             item = Nautilus.MenuItem(
                 name="ArchiveBrowser::Create",
                 label=T["create_label"],
-                tip="Create an archive from selected files",
+                tip="用选中的文件创建压缩包",
                 icon="package-x-generic",
             )
             item.connect("activate", lambda *_:

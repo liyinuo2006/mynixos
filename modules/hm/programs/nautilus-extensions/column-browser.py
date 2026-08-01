@@ -1,13 +1,9 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 #
-# NAME: Column Browser — Nautilus Python Extension
-# DESC: Fast Miller-columns (macOS Finder style) folder browser, standalone
-#       window launched from Nautilus. Extracted from Dual Panel's column
-#       view mode — kept single-pane on purpose: this tool is for browsing
-#       fast, not for copy/move (Dual Panel already does that).
-# AUTHOR: Tof
-# VERSION: 1.0
+# 名称：列浏览器
+# 说明：以独立窗口提供 Miller Columns 风格的快速目录浏览。
+# 本文件是本机自用版本，仅在本仓库维护。
 # LICENSE: GNU General Public License v3.0
 #
 # This program is free software: you can redistribute it and/or modify
@@ -30,42 +26,19 @@
 #   nautilus -q
 
 import os
-import locale
 
 import gi
 gi.require_version("Gtk", "4.0")
 gi.require_version("Adw", "1")
 from gi.repository import GObject, Gtk, Adw, Gdk, Gio, GLib, Pango, Nautilus
 
-# ---------------------------------------------------------------------------
-# i18n
-# ---------------------------------------------------------------------------
-_lang = locale.getlocale()[0] or ""
-
-if _lang.startswith("de"):
-    T = {
-        "menu_label": "Spaltenansicht öffnen",
-        "title":      "Spaltenansicht",
-        "go_up":      "Übergeordneter Ordner",
-        "refresh":    "Neu laden",
-        "err_title":  "Fehler",
-    }
-elif _lang.startswith("fr"):
-    T = {
-        "menu_label": "Ouvrir en vue colonnes",
-        "title":      "Vue Colonnes",
-        "go_up":      "Dossier parent",
-        "refresh":    "Actualiser",
-        "err_title":  "Erreur",
-    }
-else:
-    T = {
-        "menu_label": "Open in column view",
-        "title":      "Column Browser",
-        "go_up":      "Parent folder",
-        "refresh":    "Refresh",
-        "err_title":  "Error",
-    }
+T = {
+    "menu_label": "打开列视图",
+    "title":      "列浏览器",
+    "go_up":      "上一级",
+    "refresh":    "刷新",
+    "err_title":  "错误",
+}
 
 # ---------------------------------------------------------------------------
 # Helpers (dupliqués depuis dual-panel.py — chaque extension Nautilus est
@@ -74,13 +47,11 @@ else:
 # ---------------------------------------------------------------------------
 
 _EXTENSIONS_DIR = os.path.expanduser("~/.local/share/nautilus-python/extensions")
-_DIM_OPACITY    = 0.35
-
-
-def _hidden_dim_active():
-    """Retourne True si hidden-dim-icon.py ou hidden-dim-all.py est actif."""
-    return (os.path.isfile(os.path.join(_EXTENSIONS_DIR, "hidden-dim-icon.py")) or
-            os.path.isfile(os.path.join(_EXTENSIONS_DIR, "hidden-dim-all.py")))
+_DIM_OPACITY = 0.35
+_HIDDEN_DIM_ACTIVE = any(
+    os.path.isfile(os.path.join(_EXTENSIONS_DIR, name))
+    for name in ("hidden-dim-icon.py", "hidden-dim-all.py")
+)
 
 
 def _nautilus_window():
@@ -322,7 +293,7 @@ class MillerColumn(Gtk.Box):
         chevron.set_visible(entry.is_dir)
 
         is_hidden = entry.name.startswith(".") and len(entry.name) > 1
-        if _hidden_dim_active() and is_hidden:
+        if _HIDDEN_DIM_ACTIVE and is_hidden:
             icon.set_opacity(_DIM_OPACITY)
             lbl.add_css_class("dim-label")
         else:
@@ -343,7 +314,8 @@ class MillerColumn(Gtk.Box):
         entry = self._sort_model.get_item(position)
         if entry and not entry.is_dir:
             try:
-                Gio.AppInfo.launch_default_for_uri(f"file://{entry.path}", None)
+                uri = Gio.File.new_for_path(entry.path).get_uri()
+                Gio.AppInfo.launch_default_for_uri(uri, None)
             except Exception:
                 pass
 
@@ -490,6 +462,7 @@ class ColumnBrowserWindow(Adw.Window):
         _open_windows.append(self)
         self.connect("destroy", lambda w: _open_windows.remove(w) if w in _open_windows else None)
         self._path = start_path
+        ColumnBrowserKeyHandler._current_path = start_path
 
         # ── CSS (poignée de resize + chevron) ──────────────────────────────
         css = Gtk.CssProvider()
@@ -592,6 +565,7 @@ class ColumnBrowserWindow(Adw.Window):
         if not os.path.isdir(path):
             return
         self._path = path
+        ColumnBrowserKeyHandler._current_path = path
         self._addr_entry.set_text(path)
         self._miller.reset_to(path)
 
@@ -659,28 +633,30 @@ class ColumnBrowserExtension(GObject.GObject, Nautilus.MenuProvider):
     def get_file_items(self, files):
         dirs = [f for f in files
                 if f.get_uri_scheme() == "file" and f.is_directory()]
-        if not dirs:
+        if len(dirs) != 1 or len(files) != 1:
             return []
 
         item = Nautilus.MenuItem(
             name="ColumnBrowser::Open",
             label=T["menu_label"],
-            tip="Open a Miller-columns browser starting here",
+            tip="从此处打开列浏览器",
             icon=_resolve_column_icon(),
         )
         item.connect("activate", self._on_activate, dirs[0])
         return [item]
 
     def get_background_items(self, folder):
-        if folder:
-            p = folder.get_location().get_path()
-            if p:
-                ColumnBrowserKeyHandler._current_path = p
+        if folder is None or folder.get_uri_scheme() != "file":
+            return []
+        p = folder.get_location().get_path()
+        if not p or not os.path.isdir(p):
+            return []
+        ColumnBrowserKeyHandler._current_path = p
 
         item = Nautilus.MenuItem(
             name="ColumnBrowser::OpenBg",
             label=T["menu_label"],
-            tip="Open a Miller-columns browser here",
+            tip="在此处打开列浏览器",
             icon=_resolve_column_icon(),
         )
         item.connect("activate", self._on_activate_bg, folder)

@@ -1,5 +1,6 @@
 {
   pkgs,
+  inputs,
   ...
 }:
 let
@@ -39,11 +40,11 @@ in
 
     wechat-wrapped
     qq
-
     wps-wrapped
     google-chrome
 
     nautilus
+    motrix-next
 
     # Noctalia 模板主题依赖:GTK 基础主题 + Qt 配色工具
     adw-gtk3
@@ -51,6 +52,10 @@ in
 
     ripgrep
     tree
-    htop
+    btop
+
+    # AyuGram:Telegram 增强客户端(Ghost Mode、防撤回等)
+    inputs.ayugram-desktop.packages.${pkgs.system}.ayugram-desktop
+
   ];
 }

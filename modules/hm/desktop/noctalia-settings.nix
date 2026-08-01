@@ -287,6 +287,7 @@
       ];
       community_ids = [
         "zen-browser"
+        "telegram"
         "zed"
       ];
     };

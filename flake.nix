@@ -13,11 +13,17 @@
       "https://nix-community.cachix.org?priority=45"
       # noctalia v5
       "https://noctalia.cachix.org"
+      # ayugram-desktop
+      "https://ayugram-desktop.cachix.org"
+      # AyuGram 的 tg_owt 依赖
+      "https://tg-owt.cachix.org"
     ];
     trusted-public-keys = [
       "cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY="
       "nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs="
       "noctalia.cachix.org-1:pCOR47nnMEo5thcxNDtzWpOxNFQsBRglJzxWPp3dkU4="
+      "ayugram-desktop.cachix.org-1:AZ5EqHrJsAKL5YkZYLPEsb1FdD9QlypUwQ0REcJftgA="
+      "tg-owt.cachix.org-1:lp0BukIhSK3EIyLcDhDZ5zABgT48nmNp6t4SnZ0wr8w="
     ];
   };
 
@@ -49,6 +55,14 @@
     spicetify-nix = {
       url = "github:Gerg-L/spicetify-nix";
       inputs.nixpkgs.follows = "nixpkgs";
+    };
+
+    # AyuGram(Telegram 增强客户端,NixOS flake 打包)
+    # README 要求 git 类型 + submodules,否则构建失败
+    ayugram-desktop = {
+      type = "git";
+      submodules = true;
+      url = "https://github.com/ndfined-crp/ayugram-desktop/";
     };
 
   };

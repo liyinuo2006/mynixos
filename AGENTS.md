@@ -1,92 +1,46 @@
 # AGENTS.md — mynixos
 
-Orion 的个人 NixOS flake,仅管理单台机器(配置名 `mynixos`,目录 `hosts/vostro-3420/`)。
+Orion 的单机 NixOS flake，唯一配置输出是 `nixosConfigurations.mynixos`，硬件目录是
+`hosts/vostro-3420/`。
 
-## 关于本文件
+## 硬性规则
 
-由 opencode 自动注入每次会话的提示词,**阅读对象是 AI**,用户仅审查。写内容时只放
-"不告诉就会踩坑" 的事实,能靠读代码得出的不收录。
+- OpenCode 在任何时候都不得手动运行 Nix 求值、诊断、格式化或构建验证：包括 `nix eval`、
+  `nix-instantiate`、`nix repl` 和 `nixos-rebuild`。最终切换由用户执行。
+- `nixd` 诊断和 `nixfmt` 格式化由 OpenCode/Zed 自动处理；OpenCode 和用户都不要手动调用它们。
+  Zed 与 OpenCode 的配置共用 `modules/hm/common/nixd.nix`，改补全源、格式化或 suppress 只改这一处。
+- 未发现 README、CI 或任务运行器配置；不要猜测 npm、pytest 等命令。非 Nix 检查可用
+  `git diff --check`。
 
-## 自动化已接管,AI 不要重复做
+## 配置入口
 
-opencode 已在 `modules/hm/ai-agent/opencode.nix` 配置好:
+- 入口链是 `flake.nix` → `hosts/vostro-3420/default.nix` → NixOS 模块与
+  `home/orion/default.nix` → Home Manager 模块。
+- 各模块目录通过 `default.nix` 聚合导入；新增模块必须挂到对应聚合器，不能绕过 module system。
+- `modules/hm/common/` 是被模块直接 `import` 的共享数据，不是模块目录。
 
-- **自动格式化**:AI 改完 `.nix` 后 opencode 自动跑 `nixfmt`,不要自己手动 `nix fmt`。
-- **自动语法校验**:内置 nixd LSP,改完即验,出错会把诊断注入回 AI 上下文。
-  **无须自己跑 `nixos-rebuild build` / `switch` / `nix-instantiate` 验证语法**——
-  构建成本高,用户会自己构建测试。
-- 因此 AI 的职责只剩:**逻辑正确、风格一致、符合约定**。
+## 不可随意破坏的约定
 
-## 模型知识可能落后,NixOS 先搜后答
+- 不要修改 `modules/hm/ai-agent/opencode.nix`；当前会话依赖它的 OpenCode、nixd 和 formatter 配置。
+- `modules/hm/desktop/niri-config/` 由 `modules/hm/desktop/niri.nix` 递归挂载到
+  `~/.config/niri`，包括 `test/`；改 Niri 直接改 `.kdl`，不要在 Nix 中重写。
+- ZIP 的双击默认处理程序在 `modules/hm/desktop/env.nix` 中设为 Nautilus；`unzip` 等包是命令行工具，
+  不要用 File Roller 替代该行为。
+- 微信/WPS 在 `modules/hm/programs/packages.nix` 中通过 `symlinkJoin` + `wrapProgram` 包装以接入 fcitx；
+  升级时只换包名，不要破坏包装参数。
+- Niri 内屏当前 scale 是 `1.5`；fcitx5 的 XWayland 候选框依赖 `Xft.dpi = 144`。修改
+  `outputs.kdl` 的 scale 时，必须同步检查 `fcitx5-rime-ice.nix` 与 `miscellaneous.kdl`。
+- fish 别名集中在 `modules/hm/programs/shell.nix`；`oc` 会设置三个 `OPENCODE_*` 环境变量后启动 OpenCode。
+- system/home 的 `stateVersion` 都是 `"26.05"`，未明确理解迁移影响前不要修改。
+- `hosts/vostro-3420/hardware-configuration.nix` 由安装器生成，包含 Btrfs 的 `root`、`home`、`nix` 子卷；
+  修改前先备份。
+- 注释使用中文；避免为单机配置引入不必要的抽象。
 
-- nixpkgs/NixOS 迭代快,模型训练知识滞后。凡涉及上游行为、模块选项、包版本、
-  stateVersion 等可能随时间变化的内容,**先用 websearch 搜最新资料**再下结论或动手。
+## Inputs 与操作
 
-## 用户是 NixOS 初学者
-
-- 非必要不给仓库引入复杂性(新抽象、新框架、过度参数化都算)。
-- 发现现有写法可用更高级的 nix 函数/惯用法优化时,**主动指出并解释**,帮用户成长。
-- 用户不懂术语、表达含糊时,**积极提问确认意图**,别猜;回答时说明信息来源
-  (读了哪个文件、依据哪条配置),便于用户复核。
-
-## 维护本文件的责任
-
-- 改了模块结构/约定/命令后,**主动同步更新本文件**相应章节。
-- 用户改仓库后不告知 AI。发现本文件与代码冲突(目录、命令、约定对不上)时,
-  **以可执行代码为准**,主动修正本文件。
-
-## 仓库结构(聚合链)
-
-- 入口:`flake.nix` → `hosts/vostro-3420/default.nix` → 导入 `modules/nixos/*` +
-  `home/orion/default.nix`(后者导入 `modules/hm/*`)。
-- 所有模块经各级 `default.nix` 聚合导入,**新增模块要挂到对应 `default.nix`,
-  不要绕过 module system**。
-- `modules/nixos/`:`core/` 基础、`wm/` niri、`programs/` clash/nautilus/packages/polkit、`dm/` LY。
-- `modules/hm/`:`desktop/` niri 配置+noctalia、`i18n/` fcitx5-rime-ice + language、
-  `programs/` fish/git/zed/zen-browser/spotify/terminal(kitty)/packages、`ai-agent/` opencode。
-- `modules/hm/common/`:共享数据(非模块,不挂 `default.nix`)。`nixd.nix` 是 zed 与
-  opencode 共用的 nixd LSP 配置,改 nixd 设置(补全源/格式化/suppress)改那里一处即可。
-
-## 硬约定
-
-- **格式化**:仅 `nixfmt`,禁止其他 Nix formatter。
-- **LSP**:仅 `nixd`;`nil` 在 `zed-editor.nix` 被显式禁用;
-  `sema-extra-with` 的 suppress 在 `common/nixd.nix` 统一管理。
-- **注释**:全仓库中文。
-- **shell**:fish + starship;别名集中在 `modules/hm/programs/shell.nix`,
-  加别名去那里,别散落别处。
-- **stateVersion**:`system` 和 `home` 均为 `"26.05"`,未理解影响前不要动。
-- **Btrfs**:root/home/nix 三个子卷;`hosts/vostro-3420/hardware-configuration.nix`
-  由安装器生成,手改前先备份。
-
-## 环境陷阱(易踩)
-
-- **不要动 opencode 自身配置**(`modules/hm/ai-agent/opencode.nix`)——
-  本仓库就是用这个 opencode 打开的,改坏了会打断当前会话。
-- **niri 配置**目录 `modules/hm/desktop/niri-config/*.kdl`,经
-  `modules/hm/desktop/niri.nix` 的 `xdg.configFile` 整体挂到 `~/.config/niri`
-  (整个目录原样带入,含 `test/` 子目录)。改 niri 直接改那些 `.kdl` 源文件,
-  不要在 nix 里重写。
-- **WeChat / WPS** 经 fcitx 中文环境变量包装(`modules/hm/programs/packages.nix`
-  里的 `symlinkJoin` + `wrapProgram`),升级版本时只换包名,别动 wrap 逻辑。
-- **Xft.dpi 与屏幕 scale 绑定**:fcitx5 候选框在 XWayland 应用(微信/WPS)里按
-  `Xft.dpi` 渲染,当前固定 144 = 96 × 内屏 scale 1.5(`fcitx5-rime-ice.nix` 的
-  `xresources.properties` + niri `miscellaneous.kdl` 的 xrdb 加载)。改 niri
-  outputs.kdl 的 scale 时必须同步改这里,否则候选框又变小。
-- fish 别名 `oc` = `OPENCODE_ENABLE_EXA=1 OPENCODE_EXPERIMENTAL=true
-  OPENCODE_EXPERIMENTAL_PARALLEL=true opencode`,排查 opencode 行为差异时先想到它。
-
-## Inputs 与缓存
-
-- `nixpkgs`: nixos-unstable;`home-manager` follows nixpkgs;
-  `zen-browser`(beta 分支)follows nixpkgs + home-manager;`noctalia` 走 cachix;
-  `spicetify-nix`(Gerg-L) follows nixpkgs,HM 模块见 `modules/hm/programs/spotify.nix`。
-- substituters:清华镜像 → cache.nixos.org → nix-community → noctalia(见 `flake.nix`)。
-- 常用命令(用户执行,AI 正常无须跑):
-
-```bash
-sudo nixos-rebuild switch --flake .#mynixos   # 切换(用户)
-nixos-rebuild build --flake .#mynixos         # 仅构建(用户)
-nix flake update                              # 更新 inputs
-nix flake lock --update-input <name>          # 更新单个 input
-```
+- 根 `nixpkgs` 是 `nixos-unstable`；Home Manager、Zen beta 和 Spicetify 跟随根 nixpkgs。
+  Noctalia 保持独立的 nixpkgs，AyuGram 使用带 submodules 的 Git input，不要擅自改这些关系。
+- 缓存配置同时存在于 `flake.nix` 和 `modules/nixos/core/nix.nix`，内容并不完全相同；修改缓存时检查两处。
+- 涉及上游模块选项、包名或版本时，先用 websearch 查询当前资料，不要凭旧记忆猜测。
+- 用户执行系统切换：`sudo nixos-rebuild switch --flake .#mynixos`。
+- 用户更新输入：`nix flake update` 或 `nix flake lock --update-input <name>`。

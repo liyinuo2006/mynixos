@@ -53,9 +53,30 @@ in
     ripgrep
     tree
     btop
+    fastfetch
+    rsync
+
+    #压缩与解压缩
+    unzip
+    zip
+    p7zip
+    unrar
+    gnutar
+    gzip
+    xz
+    bzip2
+    swayimg
+    nautilus-python
+
+    #视频工具
+    ffmpeg-full
+    mpv
+    obs-studio
+    yt-dlp
+    mediainfo
 
     # AyuGram:Telegram 增强客户端(Ghost Mode、防撤回等)
-    inputs.ayugram-desktop.packages.${pkgs.system}.ayugram-desktop
+    inputs.ayugram-desktop.packages.${pkgs.stdenv.hostPlatform.system}.ayugram-desktop
 
   ];
 }

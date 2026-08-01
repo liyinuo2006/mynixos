@@ -7,5 +7,6 @@
     ./git.nix
     ./zen-browser.nix
     ./spotify.nix
+    ./nautilus.nix
   ];
 }

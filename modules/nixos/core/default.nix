@@ -4,6 +4,7 @@
   imports = [
     ./boot.nix
     ./nix.nix
+    ./nix-ld.nix
     ./locale.nix
     ./networking.nix
     ./users.nix

@@ -24,6 +24,12 @@
         "https://cache.nixos.org?priority=40"
         # 社区缓存
         "https://nix-community.cachix.org?priority=45"
+        # noctalia v5
+        "https://noctalia.cachix.org"
+        # ayugram-desktop
+        "https://ayugram-desktop.cachix.org"
+        # AyuGram 的 tg_owt 依赖
+        "https://tg-owt.cachix.org"
       ];
       trusted-public-keys = [
         "cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY="

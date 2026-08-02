@@ -19,7 +19,7 @@
     "sr_mod"
   ];
   boot.initrd.kernelModules = [ ];
-  boot.kernelModules = [ ];
+  boot.kernelModules = [ "tun" ];
   boot.extraModulePackages = [ ];
 
   fileSystems."/" = {

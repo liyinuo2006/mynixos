@@ -22,9 +22,9 @@
       libepoxy
       # 托盘图标 (libayatana-appindicator3)
       libayatana-appindicator
-      libayatana-ido
+      ayatana-ido
       libayatana-indicator
-      libdbusmenu-glib
+      libdbusmenu
       # C++ 运行时 (libstdc++)
       stdenv.cc.cc.lib
     ];

@@ -15,6 +15,7 @@
   };
 
   hardware.bluetooth.enable = true;
+  services.libinput.enable = true;
 
   hardware.enableRedistributableFirmware = true;
   # 如果 WiFi 还是不行，再加下面这行（需要 allowUnfree）

@@ -9,7 +9,6 @@
     ./networking.nix
     ./users.nix
     ./power.nix
-    ./libinput.nix
     ./hardware.nix
     ./pipewire.nix
     ./removable-media.nix

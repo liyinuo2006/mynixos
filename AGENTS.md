@@ -22,8 +22,10 @@ Orion 的单机 NixOS flake，唯一配置输出是 `nixosConfigurations.mynixos
 - 不要修改 `modules/hm/ai-agent/opencode.nix`；当前会话依赖它的 OpenCode、nixd 和 formatter 配置。
 - `modules/hm/desktop/niri-config/` 由 `modules/hm/desktop/niri.nix` 递归挂载到
   `~/.config/niri`，包括 `test/`；改 Niri 直接改 `.kdl`，不要在 Nix 中重写。
- 微信/WPS 在 `modules/hm/programs/packages.nix` 中通过 `symlinkJoin` + `wrapProgram` 包装以接入 fcitx；
+- 微信/WPS 在 `modules/hm/programs/packages.nix` 中通过 `symlinkJoin` + `wrapProgram` 包装以接入 fcitx；
   升级时只换包名，不要破坏包装参数。
+- `wallpaper/` 是运行时路径：Noctalia 直接读 `~/mynixos/wallpaper`（`modules/hm/desktop/noctalia.nix`，
+  不是 store 路径），加/删壁纸只是放文件进目录，不需要 rebuild。
 - Niri 内屏当前 scale 是 `1.5`；fcitx5 的 XWayland 候选框依赖 `Xft.dpi = 144`。修改
   `outputs.kdl` 的 scale 时，必须同步检查 `fcitx5-rime-ice.nix` 与 `miscellaneous.kdl`。
 - fish 别名集中在 `modules/hm/programs/shell.nix`；`oc` 会设置三个 `OPENCODE_*` 环境变量后启动 OpenCode。
@@ -36,7 +38,6 @@ Orion 的单机 NixOS flake，唯一配置输出是 `nixosConfigurations.mynixos
 
 - 根 `nixpkgs` 是 `nixos-unstable`；Home Manager、Zen beta 和 Spicetify 跟随根 nixpkgs。
   Noctalia 保持独立的 nixpkgs，AyuGram 使用带 submodules 的 Git input，不要擅自改这些关系。
-- 缓存配置同时存在于 `flake.nix` 和 `modules/nixos/core/nix.nix`，内容并不完全相同；修改缓存时检查两处。
 - 涉及上游模块选项、包名或版本时，先用 websearch 查询当前资料，不要凭旧记忆猜测。
 - 用户执行系统切换：`sudo nixos-rebuild switch --flake .#mynixos`。
 - 用户更新输入：`nix flake update` 或 `nix flake lock --update-input <name>`。

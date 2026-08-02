@@ -17,6 +17,8 @@
       "https://ayugram-desktop.cachix.org"
       # AyuGram 的 tg_owt 依赖
       "https://tg-owt.cachix.org"
+      # fcitx5-vinput 语音输入
+      "https://fcitx5-vinput.cachix.org"
     ];
     trusted-public-keys = [
       "cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY="
@@ -24,6 +26,7 @@
       "noctalia.cachix.org-1:pCOR47nnMEo5thcxNDtzWpOxNFQsBRglJzxWPp3dkU4="
       "ayugram-desktop.cachix.org-1:AZ5EqHrJsAKL5YkZYLPEsb1FdD9QlypUwQ0REcJftgA="
       "tg-owt.cachix.org-1:lp0BukIhSK3EIyLcDhDZ5zABgT48nmNp6t4SnZ0wr8w="
+      "fcitx5-vinput.cachix.org-1:XpX3AA6+dDIX4qJhb1QM7sbTwX6/qSlGvW8Z5NK6XdU="
     ];
   };
 
@@ -64,6 +67,10 @@
       submodules = true;
       url = "https://github.com/ndfined-crp/ayugram-desktop/";
     };
+
+    # fcitx5 语音输入(本地 sherpa-onnx ASR + 云 ASR + LLM 改写)
+    # 二进制缓存:https://fcitx5-vinput.cachix.org
+    fcitx5-vinput.url = "github:xifan2333/fcitx5-vinput";
 
   };
 

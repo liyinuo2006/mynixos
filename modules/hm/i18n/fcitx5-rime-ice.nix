@@ -4,8 +4,7 @@
   ...
 }:
 let
-  # fcitx5-vinput 语音输入插件(来自 flake input)
-  vinput = inputs.fcitx5-vinput.packages.${pkgs.stdenv.hostPlatform.system}.default;
+  fcitx5-vinput = inputs.fcitx5-vinput.packages."${pkgs.stdenv.hostPlatform.system}".default;
 in
 {
   i18n.inputMethod = {
@@ -23,8 +22,8 @@ in
         (catppuccin-fcitx5.override {
           withRoundedCorners = true;
         })
-
-        vinput # 语音输入(触发键 Alt_R:点按录制/长按即讲)
+        fcitx5-vinput
+        # 语音输入(触发键 Alt_R:点按录制/长按即讲)
       ];
 
       # 候选窗外观（对应 conf/classicui.conf）
@@ -144,12 +143,5 @@ in
   # 文件由 niri 的 spawn-sh-at-startup(xrdb -merge)在 XWayland 就绪后加载。
   xresources.properties = {
     "Xft.dpi" = "144";
-  };
-
-  # vinput-daemon(语音识别守护进程,直接使用包内随附的 systemd 单元,
-  # ExecStart 指向 store 路径,与上游保持同步)
-  systemd.user.services.vinput-daemon = {
-    enable = true;
-    text = builtins.readFile "${vinput}/share/systemd/user/vinput-daemon.service";
   };
 }

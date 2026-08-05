@@ -5,13 +5,15 @@
 
   boot.loader.efi = {
     canTouchEfiVariables = true;
-    efiSysMountPoint = "/boot";
+    efiSysMountPoint = "/efi";
   };
 
-  boot.loader.systemd-boot = {
+  boot.loader.grub = {
     enable = true;
+    device = "nodev";
+    efiSupport = true;
     configurationLimit = 30;
-    editor = false;
+    useOSProber= true;
   };
 
   boot.kernelParams = [

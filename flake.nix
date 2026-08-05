@@ -1,13 +1,13 @@
 {
-  description = "Orion's NixOS flake 3";
+  description = "Orion's NixOS flake";
 
   nixConfig = {
     substituters = [
       # 3个国内大学镜像(tuna 只镜像活跃 channel 的部分路径,
       # 其他 nixpkgs rev 的依赖要 SJTU/USTC 才有,所以全开)
       "https://mirrors.tuna.tsinghua.edu.cn/nix-channels/store?priority=10"
-      "https://mirror.sjtu.edu.cn/nix-channels/store?priority=20"
-      "https://mirrors.ustc.edu.cn/nix-channels/store?priority=30"
+      #"https://mirror.sjtu.edu.cn/nix-channels/store?priority=20"
+      #"https://mirrors.ustc.edu.cn/nix-channels/store?priority=30"
       # 官方原站
       "https://cache.nixos.org?priority=40"
       # 社区缓存

@@ -38,8 +38,8 @@ in
 {
   home.packages = with pkgs; [
 
-    wechat-wrapped
-    qq
+   wechat-wrapped
+   qq
     wps-wrapped
     google-chrome
 

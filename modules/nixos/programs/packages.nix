@@ -10,5 +10,6 @@
     curl
     wget
     vim
+    ntfs3g
   ];
 }

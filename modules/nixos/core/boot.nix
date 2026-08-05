@@ -13,7 +13,7 @@
     device = "nodev";
     efiSupport = true;
     configurationLimit = 30;
-    useOSProber= true;
+    useOSProber = true;
   };
 
   boot.kernelParams = [
@@ -21,6 +21,9 @@
     "nowatchdog"
     "modprobe.blacklist=iTCO_wdt"
   ];
+  boot.supportedFilesystems = {
+    ntfs = true;
+  };
 
   boot.zswap = {
     enable = true;

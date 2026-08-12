@@ -1,0 +1,43 @@
+// ============ 命名工作区 ============
+// 声明后永远存在(没窗口也在),可以像普通工作区一样移动。
+// 动作 focus-workspace "名字" / move-column-to-workspace "名字" 可以按名字引用;
+// window-rule 的 open-on-workspace "名字" 让窗口开在这里。
+// 按声明顺序初始排列;配置热重载时新命名工作区出现在显示器最顶端。
+// 删掉声明 → 变回普通工作区,没窗口就消失。
+// 25.02 起命名工作区更「粘」原显示器(新窗口开上去也不会忘)。
+
+// 例:开个浏览器专属工作区
+// workspace "browser"
+
+// 例:聊天工作区,指定开在某个显示器上(名字可用厂商 型号 序列号)
+// workspace "chat" {
+//     open-on-output "HDMI-A-1"
+// }
+
+// 配合 window-rule 用:启动时把 Fractal 开进 chat 工作区
+// window-rule {
+//     match at-startup=true app-id=r#"^org\.gnome\.Fractal$"#
+//     open-on-workspace "chat"
+// }
+
+// ---------- 布局覆盖(25.11+) ----------
+// 命名工作区可单独覆盖 layout 设置,参数和顶层 layout {} 一样,
+// 例外:empty-workspace-above-first(显示器级设置)、insert-hint(只画在输出级)。
+// 想关掉全局 flag 就写 false
+// workspace "aesthetic" {
+//     layout {
+//         gaps 32
+//         struts {
+//             left 64
+//             right 64
+//             top 64
+//             bottom 64
+//         }
+//         border {
+//             on
+//             width 4
+//         }
+//         // 全局开了 always-center-single-column,这里关掉:
+//         // always-center-single-column false
+//     }
+// }

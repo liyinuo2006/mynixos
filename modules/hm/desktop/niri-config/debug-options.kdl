@@ -1,0 +1,87 @@
+// ============ 调试选项 ============
+// 警告:这些不受配置兼容性保证,随时可能变,正常使用不要开!
+
+debug {
+    // 按「录屏/截图」的方式渲染显示器,用来预览 block-out-from 效果
+    // preview-render "screencast"
+    // preview-render "screen-capture"
+
+    // 允许直接扫描输出到 overlay planes。某些硬件动画时掉帧,所以默认关;
+    // primary plane 的直扫始终开启
+    // enable-overlay-planes
+
+    // 禁用光标 plane,光标和画面一起渲染。
+    // 解决特定硬件的驱动 bug;VRR 下光标低帧率也可以试试
+    // disable-cursor-plane
+
+    // 关掉所有直接扫描输出(primary + overlay)
+    // disable-direct-scanout
+
+    // 直扫 primary plane 时要求缓冲格式完全匹配合成格式。
+    // 可能阻止某些客户端(mpv)直扫;官方打算未来默认开
+    // restrict-primary-scanout-to-matching-format
+
+    // 恢复时强制关闭所有输出(TTY 切换/休眠唤醒),会黑屏一下。
+    // 唤醒后画面损坏或显示器不亮时试这个
+    // force-disable-connectors-on-resume
+
+    // 指定渲染用的 DRM 设备(多 GPU 时换主 GPU)
+    // render-drm-device "/dev/dri/renderD129"
+
+    // 忽略某些 DRM 设备(GPU 直通场景)
+    // ignore-drm-device "/dev/dri/renderD128"
+
+    // 强制 PipeWire 录屏用 invalid modifier,测驱动不支持 modifier 的路径
+    // force-pipewire-invalid-modifier
+
+    // 非 --session 运行也建 D-Bus 接口(测试录屏用;关掉测试实例后主实例
+    // 不会收回接口,需要重新登录)
+    // dbus-interfaces-in-non-session-instances
+
+    // 每帧渲染完才交给 DRM,诊断同步/性能问题
+    // wait-for-frame-completion-before-queueing
+
+    // 模拟 DRM 返回零时间戳(NVIDIA 闭源驱动的表现)
+    // emulate-zero-presentation-time
+
+    // 关掉 resize 节流,窗口收到尽可能快的尺寸事件。
+    // 会破坏 resize 事务,需要配合下一条用
+    // disable-resize-throttling
+
+    // 关掉事务(resize/close 同步机制),所有窗口各自为战,画面可能不同步
+    // disable-transactions
+
+    // 合盖后内屏保持开启,不自动关(默认合盖关内屏)
+    // keep-laptop-panel-on-when-lid-is-closed
+
+    // 忽略 EDID 的厂商/型号/序列号,当读不到名字处理。
+    // 规避 0.1.9/0.1.10 两个同型号显示器崩溃的老 bug
+    // disable-monitor-names
+
+    // 关闭新窗口启发式自动聚焦,只有带合法 xdg-activation token 的窗口能抢焦点
+    // strict-new-window-focus-policy
+
+    // 接受 serial 非法的 xdg-activation token(25.05+)。
+    // Discord/Telegram 点托盘/通知要聚焦就靠这个。
+    // 你的 config.kdl 里已开(honor-xdg-activation-with-invalid-serial,
+    // Noctalia 需要),保持即可
+    honor-xdg-activation-with-invalid-serial
+
+    // VRR 激活时跳过光标引起的重绘,游戏防掉帧。
+    // 有「画面完全冻结」的副作用,慎用
+    // skip-cursor-only-updates-during-vrr
+
+    // 丢掉所有未聚焦窗口的 Activated 状态。
+    // 修 Chromium/Electron(Teams/Slack)把 Activated 当焦点用的 bug
+    // deactivate-unfocused-windows
+}
+
+// ---------- 调试按键 ----------
+// binds {
+//     // 所有未直扫的表面染绿,检查直扫是否生效
+//     Mod+Shift+Ctrl+T { toggle-debug-tint; }
+//     // 不透明区域染蓝,其余染红
+//     Mod+Shift+Ctrl+O { debug-toggle-opaque-regions; }
+//     // 损坏区域染红
+//     Mod+Shift+Ctrl+D { debug-toggle-damage; }
+// }

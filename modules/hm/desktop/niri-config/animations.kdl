@@ -1,0 +1,88 @@
+// ============ 动画 ============
+// 两种类型:
+// 1. easing(缓动):duration-ms 时长 + curve 曲线,
+//    曲线只有:linear / ease-out-quad / ease-out-cubic / ease-out-expo /
+//    cubic-bezier 0.05 0.7 0.1 1(25.08+,4 个控制点)
+// 2. spring(弹簧):三个必填参数,基于物理模型,适合跟手的手势动画:
+//    spring damping-ratio=1.0 stiffness=800 epsilon=0.0001
+//    damping-ratio:0.1~10,<1 会回弹振荡,=1 临界阻尼(最快无振荡),>1 过阻尼
+//    注意:>1 过阻尼有数值稳定性问题,官方不推荐!
+//    stiffness 越小动画越慢越爱振荡;epsilon 越小越不会在结尾「跳」。
+//    质量固定为 1,想等效 2 倍质量就把 stiffness 减半。
+//    参数可视化工具:Elastic 应用
+// 顶部可整体 off 或 slowdown 3.0(慢 3 倍,<1 反而加速)
+
+animations {
+    // 全部动画开关 / 整体减速
+    // off
+    // slowdown 3.0
+
+    // 工作区上下切换(含触控板竖滑手势收尾)。手势推荐 spring
+    workspace-switch {
+        spring damping-ratio=1.0 stiffness=1000 epsilon=0.0001
+        // 想要回弹手感:阻尼调到 0.7 左右会轻微振荡
+        // spring damping-ratio=0.7 stiffness=900 epsilon=0.0001
+    }
+
+    // 窗口打开,默认 easing
+    window-open {
+        duration-ms 150
+        curve "ease-out-expo"
+        // 自定义着色器(0.1.6+,实验性,接口不保证兼容;编译失败自动回退):
+        // custom-shader r"..."   // 参考官方示例 open_custom_shader.frag
+    }
+
+    // 窗口关闭
+    window-close {
+        duration-ms 150
+        curve "ease-out-quad"
+        // custom-shader r"..."
+    }
+
+    // 横向视图滚动:焦点移到屏幕外的列、新窗口出现在屏幕外、
+    // 触控板横滑收尾。手势推荐 spring
+    horizontal-view-movement {
+        spring damping-ratio=1.0 stiffness=800 epsilon=0.0001
+    }
+
+    // 窗口在工作区内移动:移列、列内上下移、开合窗口腾位、合并/分离列。
+    // 不含相机视角滚动
+    window-movement {
+        spring damping-ratio=1.0 stiffness=800 epsilon=0.0001
+    }
+
+    // 手动改尺寸动画(预设列宽切换、最大化等);<10px 的微小调整不动画。
+    // 同步动画:和它一起发生的视图移动/列内位移也用本配置,
+    // 所以最好让 horizontal-view-movement / window-movement / window-resize
+    // 三者的参数保持一致(默认就是一致的)
+    window-resize {
+        spring damping-ratio=1.0 stiffness=800 epsilon=0.0001
+        // custom-shader r"..."
+    }
+
+    // 配置错误/新默认配置通知的开合动画
+    config-notification-open-close {
+        spring damping-ratio=0.6 stiffness=1000 epsilon=0.001
+    }
+
+    // 退出确认弹窗的开合动画(25.08+)
+    exit-confirmation-open-close {
+        spring damping-ratio=0.6 stiffness=500 epsilon=0.01
+    }
+
+    // 截图 UI 淡入
+    screenshot-ui-open {
+        duration-ms 200
+        curve "ease-out-quad"
+    }
+
+    // 概览开合缩放(25.05+)
+    overview-open-close {
+        spring damping-ratio=1.0 stiffness=800 epsilon=0.0001
+    }
+
+    // 最近窗口切换器关闭淡出(25.11+)
+    recent-windows-close {
+        spring damping-ratio=1.0 stiffness=800 epsilon=0.001
+    }
+}

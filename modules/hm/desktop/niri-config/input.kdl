@@ -1,0 +1,100 @@
+// ============ 输入设备配置 ============
+input {
+
+    // ---------- 触控板 ----------
+    touchpad {
+        // 完全禁用触控板(外部鼠标党可开)
+        // off
+        // 轻点即点击(点按代替按下),推荐开启
+        tap
+        // 打字时自动禁用触控板,防误触,推荐开启
+        dwt
+        // 轻点后拖动(25.05+),默认 true。开着更方便:轻点两下后不抬手直接拖窗口
+        // drag false
+        // 拖动时短暂抬手不松开拖拽物(25.02+),配合 drag 用,推荐
+        // drag-lock
+        // 反向滚动(手指下滑页面下滚变手指下滑页面上滚)。
+        // 看你习惯:浏览器里「双指下滑 = 向下滚动」是标准,开了就是苹果式自然滚动
+        natural-scroll
+        // 指针加速度,-1.0(最慢)到 1.0(最快),默认 0.0
+        // accel-speed 0.2
+        // 加速曲线:"adaptive" 自适应(默认) / "flat" 关闭加速、线性移动
+        // 游戏/精细制图推荐 "flat",日常用默认即可
+        // accel-profile "flat"
+        // 滚动速度倍率,1.0 默认;可单独调垂直/水平:vertical=1.0 horizontal=-2.0
+        // 负号会反向该方向,比如水平滚动方向和手指相反时可以这样改
+        // scroll-factor 1.0
+        // 滚动方式:"two-finger" 双指 / "edge" 边缘 / "on-button-down" 按住按键滚
+        // 触控板默认 "two-finger",最符合直觉,不用改
+        // scroll-method "two-finger"
+        // on-button-down 模式用的滚轮键码(libinput debug-events 可查)
+        // scroll-button 273
+        // 滚轮键不用一直按住,按一次滚、再按一次停(25.08+)
+        // scroll-button-lock
+        // 轻点键位映射:"left-middle-right"(默认)或 "left-right-middle"
+        // 双指轻点=中键,三指轻点=右键,常规左中右
+        // tap-button-map "left-middle-right"
+        // 点击方式:"button-areas" 左右下角分区 / "clickfinger" 按手指数量
+        // 你的触控板物理上是一整块可按压的,用 "clickfinger"(一指左键、两指右键)更顺
+        // click-method "clickfinger"
+        // 惯用左手模式
+        // left-handed
+        // 插入外部鼠标时自动禁用触控板,外接鼠标党推荐
+        // disabled-on-external-mouse
+        // 左右键同时按模拟中键,有些软件(如贴吧看图翻页)要中键,需要就开
+        // middle-emulation
+    }
+
+    // ---------- 鼠标 ----------
+    mouse {
+        // 完全禁用
+        // off
+        // 反向滚动,普通鼠标一般不开(见上)
+        // natural-scroll
+        // 指针加速度,-1.0 到 1.0
+        // accel-speed 0.2
+        // 加速曲线:"adaptive" / "flat"
+        // accel-profile "flat"
+        // 滚动速度倍率,滚轮一格滚太慢/太快就调这里
+        // scroll-factor 1.0
+        // scroll-factor vertical=1.0 horizontal=-2.0
+        // 滚动方式,鼠标默认 "no-scroll"(滚轮滚),一般不用改
+        // scroll-method "no-scroll"
+        // on-button-down 模式的滚轮键码
+        // scroll-button 273
+        // scroll-button-lock
+        // 惯用左手(左右键互换)
+        // left-handed
+        // 左右键同时按模拟中键
+        // middle-emulation
+    }
+
+
+    // ---------- 通用设置 ----------
+    // 默认 niri 接管电源键,按电源键=睡眠而不是关机。
+    // 若想自己配 logind 的电源键行为再开这个,一般不需要
+    // disable-power-key-handling
+
+    // 切换焦点窗口时鼠标自动跳过去。
+    // 默认模式:鼠标只横移到窗口内就只横移,不垂直跳;mode="center-xy" 则直接跳到窗口中心;
+    // mode="center-xy-always" 即使鼠标已在窗口内也每次重置到中心。
+    // 多屏/窗口多时很省事,推荐开,但有人觉得鼠标乱跳,按喜好选
+    warp-mouse-to-focus mode="center-xy"
+
+    // 鼠标移到哪个窗口/显示器,焦点就跟到哪。
+    // max-scroll-amount 限制:若跟随会导致视图滚动超过该比例就不跟随,
+    // "0%" 表示只在不会滚动视图时才跟随,避免鼠标划过屏幕边缘误切视图。
+    // 推荐开并加 "0%" 限制,不跟手时再调大
+    focus-follows-mouse max-scroll-amount="0%"
+
+    // 按同一工作区索引两次,回到上一个工作区(来回切换神器)。
+    // 比如在 1 和 2 之间反复切换,按两次 Mod+2 就能回 1。推荐开
+    // workspace-auto-back-and-forth
+
+    // 自定义 Mod 键(25.05+),只允许 Super/Alt/Mod3/Mod5/Ctrl/Shift。
+    // 默认:TTY 下是 Super,嵌套窗口里是 Alt。
+    // 强烈不建议改成 Ctrl 或 Shift,会抢走应用快捷键
+    // mod-key "Super"
+    // 嵌套模式下用的 Mod 键
+    // mod-key-nested "Alt"
+}

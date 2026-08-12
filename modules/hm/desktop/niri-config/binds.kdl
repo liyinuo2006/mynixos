@@ -1,0 +1,89 @@
+binds {
+//自定义应用
+    Mod+T hotkey-overlay-title="Open a Terminal: kitty" { spawn "kitty" "-e" "fish" ; }
+    Super+E repeat=false hotkey-overlay-title="nautilus" { spawn "nautilus"; }
+
+
+// noctalia 面板与系统操作
+    Mod+Shift+V repeat=false hotkey-overlay-title="noctalia clipboard" { spawn-sh "noctalia msg panel-open clipboard"; }
+    Mod+P repeat=false hotkey-overlay-title="noctalia session" { spawn-sh "noctalia msg panel-open session"; }
+    Mod+W repeat=false hotkey-overlay-title="noctalia wallpaper" { spawn-sh "noctalia msg panel-open wallpaper"; }
+    Mod+L repeat=false hotkey-overlay-title="lock screen" { spawn-sh "noctalia msg session lock"; }
+    Mod+I repeat=false hotkey-overlay-title="noctalia setting" { spawn-sh "noctalia msg settings-open"; }
+    Mod+Alt+Space repeat=false hotkey-overlay-title="noctalia launcher" { spawn-sh "noctalia msg panel-toggle launcher"; }
+
+
+
+// niri 的 windows 操作
+    Mod+O repeat=false { toggle-overview; }
+
+    Mod+Q repeat=false { close-window; }
+
+    Mod+Left  { focus-column-left; }
+    Mod+Down  { focus-window-down; }
+    Mod+Up    { focus-window-up; }
+    Mod+Right { focus-column-right; }
+
+    Mod+Ctrl+Left  { move-column-left; }
+    Mod+Ctrl+Down  { move-window-down; }
+    Mod+Ctrl+Up    { move-window-up; }
+    Mod+Ctrl+Right { move-column-right; }
+
+    Mod+Page_Down      { focus-workspace-down; }
+    Mod+Page_Up        { focus-workspace-up; }
+    Mod+Ctrl+Page_Down { move-column-to-workspace-down; }
+    Mod+Ctrl+Page_Up   { move-column-to-workspace-up; }
+
+    Mod+Shift+Page_Down { move-workspace-down; }
+    Mod+Shift+Page_Up   { move-workspace-up; }
+
+    Mod+1 { focus-workspace 2; }
+    Mod+2 { focus-workspace 3; }
+    Mod+3 { focus-workspace 4; }
+    Mod+4 { focus-workspace 5; }
+    Mod+5 { focus-workspace 6; }
+    Mod+6 { focus-workspace 7; }
+    Mod+7 { focus-workspace 8; }
+    Mod+8 { focus-workspace 9; }
+
+    Mod+Tab { focus-workspace-previous; }
+
+    Mod+BracketLeft  { consume-or-expel-window-left; }
+    Mod+BracketRight { consume-or-expel-window-right; }
+
+    Mod+Comma  { consume-window-into-column; }
+    Mod+Period { expel-window-from-column; }
+
+    Mod+R { switch-preset-column-width; }
+    Mod+Shift+R { switch-preset-window-height; }
+    Mod+Ctrl+R { reset-window-height; }
+    Mod+F { maximize-column; }
+    Mod+Shift+F { fullscreen-window; }
+    Mod+Ctrl+F { expand-column-to-available-width; }
+
+
+    Mod+Minus { set-column-width "-10%"; }
+    Mod+Equal { set-column-width "+10%"; }
+    Mod+Shift+Minus { set-window-height "-10%"; }
+    Mod+Shift+Equal { set-window-height "+10%"; }
+
+    //Mod+V       { toggle-window-floating; }
+    //Mod+Shift+V { switch-focus-between-floating-and-tiling; }
+
+    Mod+Escape allow-inhibiting=false { toggle-keyboard-shortcuts-inhibit; }
+
+// screenshot
+    Print { spawn-sh "noctalia msg screenshot-region"; }
+    Ctrl+Print { spawn-sh "noctalia msg screenshot-fullscreen"; }
+    Alt+Print { screenshot-window; }
+
+// Audio & Brightness
+    XF86AudioRaiseVolume { spawn-sh "noctalia msg volume-up"; }
+    XF86AudioLowerVolume { spawn-sh "noctalia msg volume-down"; }
+    XF86AudioMute { spawn-sh "noctalia msg volume-mute"; }
+    XF86MonBrightnessUp { spawn-sh "noctalia msg brightness-up"; }
+    XF86MonBrightnessDown { spawn-sh "noctalia msg brightness-down"; }
+
+//退出niri
+    Mod+Shift+E { quit; }
+}

@@ -1,0 +1,148 @@
+// ============ 布局设置 ============
+// 影响窗口如何摆放和缩放。
+// 25.11 起可以在 output {} 和 workspace {} 里对单个显示器/工作区覆盖这里的设置
+
+layout {
+    // 窗口内外边距,逻辑像素(0.1.7 起支持小数,会按 scale 取整到物理像素)
+    // 例:gaps 0.5 + scale 2 = 1 物理像素的缝
+    gaps 2.5
+
+    // 焦点切换时何时把列居中:
+    // "never" 默认,只滚到屏幕边缘
+    // "always" 焦点列永远居中
+    // "on-overflow" 焦点列和上一列放不下时才居中
+    // 多列工作流推荐 "on-overflow",单列用永远居中无所谓
+    center-focused-column "on-overflow"
+
+    // 只有一个列时永远居中,无视上面选项(0.1.9+)。
+    // 你的屏幕每屏基本只有一个窗口,推荐开
+    always-center-single-column
+
+    // 在末尾空工作区之外,开头也常驻一个空工作区(25.01+)。
+    // 有人喜欢「头顶永远有空白工作区」的对称感,按喜好
+    empty-workspace-above-first
+
+    // 新列的默认显示模式:"normal" 或 "tabbed"(25.02+)。
+    // tabbed = 列内窗口变标签页。想默认标签页再改
+    default-column-display "tabbed"
+
+    // 工作区背景色(不用 swaybg 时可见,25.05+)。
+    // 你用了 Noctalia 一类的壁纸工具,保持 transparent 即可
+    background-color "transparent"
+
+    // ---------- 列宽预设 ----------
+    // Mod+R 循环切换的宽度档位。proportion = 输出宽度的比例(已扣除间隙),
+    // 例:4 个 0.25 的列能完美放下,和 gaps 无关。
+    // fixed = 固定逻辑像素宽度。
+    // 默认预设是 1/3、1/2、2/3
+    preset-column-widths {
+        proportion 0.33333
+        proportion 0.5
+        proportion 0.66667
+        proportion 1.0
+    }
+
+    // 新窗口的默认宽度,语法同上。
+    // 写空 {} 则让窗口自己决定初始宽度
+    // (会发 (0,H) 的初始 configure,部分客户端会误解,慎用全局)
+    default-column-width { proportion 0.5; }
+
+    // 窗口高度预设(0.1.9+),Mod+Ctrl+Shift+R 循环,默认 1/3、1/2、2/3
+    preset-window-heights {
+        proportion 0.33333
+        proportion 0.5
+        proportion 0.66667
+        proportion 1.0
+    }
+
+    // ---------- 焦点环与边框 ----------
+    // 区别:focus-ring 只画在活动窗口周围;border 画在所有窗口周围且会占窗口尺寸。
+    // 默认两者以「窗口背后的实心色块」渲染(半透明窗口能透出来);
+    // 不喜欢就开顶层 ,或给具体窗口写 draw-border-with-background 规则。
+    // 颜色写法:CSS 名("red")、#rgb/#rgba/#rrggbb/#rrggbbaa、rgb()/hsl() 等;
+    // 也有废弃的四数字 RGBA 写法。渐变优先级高于纯色。
+    focus-ring {
+        // off 关闭焦点环
+        width 2
+        // 渐变:active-gradient from="#80c8ff" to="#bbddff" angle=45
+        // 渐变方向默认 180(上到下);angle 和 CSS linear-gradient 一致。
+        // relative-to="workspace-view" 让渐变跨整行窗口连成一条(而不是每个窗口各一条)
+        // in="oklch longer hue" 换渐变插值色彩空间(0.1.8+):srgb / srgb-linear / oklab / oklch
+        // active-gradient from="#80c8ff" to="#bbddff" angle=45
+    }
+
+    border {
+        // 主配置里写空 border {} 会启用边框(历史遗留);
+        // 放在 include 的文件里就无效,必须显式 on
+        // on
+        // width 0
+        // active-color "#ffc87f"
+        // inactive-color "#505050"
+        // urgent-color "#9b0000"
+        // active-gradient from="#ffbb66" to="#ffc880" angle=45
+    }
+
+    // ---------- 阴影(25.02+) ----------
+    // 注意:阴影会跟随窗口几何圆角(见 window-rule 的 geometry-corner-radius),
+    // 但只支持四角统一半径,四角不同半径时用左上角那个。
+    shadow {
+        // on 启用;softness = 模糊半径(0 是硬阴影);
+        // spread = 向外扩展距离(可为负,25.05+);
+        // offset = 相对窗口的偏移
+        softness 30
+        spread 5
+        offset x=0 y=5
+        // 画在窗口后面而不是只绕窗口一圈。
+        // 解决「CSD 圆角内部露阴影」的破绽;但更推荐 prefer-no-csd
+        // + geometry-corner-radius,让 niri 知道圆角后正常画
+        // draw-behind-window true
+    }
+
+    // ---------- 标签页指示条(25.02+) ----------
+    // 列处于 tabbed 模式时显示在列边的标签条
+    tab-indicator {
+        // off 隐藏;on 显示
+        // on
+        // 只有单个窗口时隐藏指示条,配默认 tabbed 常用
+        hide-when-single-tab
+        // 指示条算进列宽内而不是覆盖在边上(避免压住相邻列)
+        // place-within-column
+        // 指示条和窗口的间距,可为负(压到窗口上)
+        // gap 5
+        // 指示条厚度
+        // width 4
+        // 长度:total-proportion=1.0 表示和窗口一样长,默认 0.5
+        // length total-proportion=0.5
+        // 位置:"left"/"right"/"top"/"bottom"
+        // position "right"
+        // 标签之间的间距
+        // gaps-between-tabs 2
+        // 标签圆角(间距为 0 时只有首尾圆角)
+        // corner-radius 8
+        // 颜色优先级:window-rule 的 tab-indicator > 这里 > 边框/焦点环颜色
+        // active-color "red"
+        // inactive-color "gray"
+        // urgent-color "blue"
+    }
+
+    // ---------- 拖放插入提示(0.1.10+) ----------
+    // 拖动窗口时显示插入位置的提示条
+    insert-hint {
+        // off 关闭
+        // color "#ffc87f80"
+        // gradient from="#ffbb6680" to="#ffc88080" angle=45
+    }
+
+    // ---------- 收缩条(0.1.7 起支持小数和负值) ----------
+    // 缩小窗口可用区域,类似面板;左/右 struts 会让旁边的窗口露出一点边缘,
+    // 上/下 struts 等于额外外间距。
+    // 负值把窗口往外推!和同值 gaps 配合可模拟「只有内间距没有外间距」:
+    //   gaps 16 + struts { left -16; right -16; top -16; bottom -16; }
+    // 你的 Noctalia 面板是 layer-shell,会自动占位,一般用不到
+    struts {
+        // left 64
+        // right 64
+        // top 64
+        // bottom 64
+    }
+}

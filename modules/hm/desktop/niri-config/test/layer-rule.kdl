@@ -1,0 +1,60 @@
+// ============ 图层规则(25.01+) ============
+// 管理 layer-shell 表面(状态栏、启动器、通知、壁纸等)。
+// 匹配机制同 window-rule:match 之间或,同行且,exclude 一票否决。
+// 查所有图层表面名字:niri msg layers
+
+// ---------- 匹配 ----------
+// match namespace="waybar"            命名空间正则(如 ^launcher$ 是 fuzzel 类启动器、
+//    ^notifications$ 是通知守护、^wallpaper$ 是壁纸工具)
+// match at-startup=true               启动后 60 秒内
+// match layer="top"                   图层层级(26.04+):"background"/"bottom"/"top"/"overlay"
+
+// ---------- 持续属性 ----------
+// opacity 0.5                         表面透明度,叠加在自身之上
+// block-out-from "screencast"         录屏/截图时遮黑(通知等隐私表面)
+// shadow { on; ... }                  阴影(25.02+):必须用图层规则开,
+//    layout 里开了不会自动给图层表面加。
+//    注意:图层表面无法告诉 niri 视觉几何(如 mako 的透明边距),
+//    阴影会画在整块表面上,先去掉客户端的边距/自绘阴影
+// geometry-corner-radius 12           只影响阴影的圆角
+// place-within-backdrop true          放进概览/切换工作区时的背景层(25.05+),
+//    只对忽略 exclusive zone 的 background 层生效,里面的表面不吃输入
+// background-effect { xray true; blur true; noise 0.05; saturation 3 }  (26.04+,同 window-rule)
+// popups { ... }                      该图层表面的弹窗规则(26.04+,同 window-rule)
+
+// ---------- 示例 ----------
+// 启动器半透明+阴影(如 fuzzel / rofi-wayland 的默认命名空间是 launcher)
+// layer-rule {
+//     match namespace="^launcher$"
+//     opacity 0.95
+//     shadow {
+//         on
+//     }
+//     geometry-corner-radius 10  // fuzzel 默认 10px 圆角
+// }
+
+// 通知从录屏里遮掉
+// layer-rule {
+//     match namespace="^notifications$"
+//     block-out-from "screencast"
+// }
+
+// 壁纸放进概览背景层
+// layer-rule {
+//     match namespace="^wallpaper$"
+//     place-within-backdrop true
+// }
+
+// 状态栏弹窗加模糊(如 waybar 的菜单)
+// layer-rule {
+//     match namespace="^waybar$"
+//     popups {
+//         geometry-corner-radius 6
+//         opacity 0.85
+//         background-effect {
+//             blur true
+//         }
+//     }
+// }
+
+// 愚人节彩蛋:baba-is-float true

@@ -1,0 +1,12 @@
+include "binds.kdl"
+include "window-rule.kdl"
+include "layer-rule.kdl"
+include "input.kdl"
+include "outputs.kdl"
+include "layout.kdl"
+include "miscellaneous.kdl"
+include "debug-options.kdl"
+include "animations.kdl"
+
+//可选 include(26.04+):文件不存在不报错只警告
+include optional=true "noctalia.kdl"

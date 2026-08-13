@@ -8,5 +8,6 @@
     ./zen-browser.nix
     ./spotify.nix
     ./nautilus.nix
+    ./sops.nix
   ];
 }

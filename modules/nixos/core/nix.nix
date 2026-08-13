@@ -1,14 +1,22 @@
-{
-  inputs,
-  ...
-}:
-{
+  {
+    inputs,
+    config,
+    ...
+  }:
+  {
 
-  nix = {
+    nix = {
 
-    nixPath = [ "nixpkgs=${inputs.nixpkgs}" ];
+      nixPath = [ "nixpkgs=${inputs.nixpkgs}" ];
 
-    settings = {
+      # GitHub token 由 sops 模板渲染后经 !include 引入（nix.conf 官方 include 特性）：
+      # access-tokens 只支持字面值（NixOS/nix#6536 未实现 file 读取），
+      # 模板路径引用 security/sops.nix 的 nix-access-tokens，token 明文不落 Nix store。
+      extraOptions = ''
+        !include ${config.sops.templates."nix-access-tokens".path}
+      '';
+
+      settings = {
 
       experimental-features = [
         "nix-command"

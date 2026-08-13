@@ -10,23 +10,7 @@
   programs.nix-ld = {
     enable = true;
     libraries = with pkgs; [
-      # FlashFoxLite (Flutter GTK3) 缺失的库
-      gtk3
-      gdk-pixbuf
-      glib
-      pango
-      cairo
-      harfbuzz
-      at-spi2-atk
-      fontconfig
-      libepoxy
-      # 托盘图标 (libayatana-appindicator3)
-      libayatana-appindicator
-      ayatana-ido
-      libayatana-indicator
-      libdbusmenu
-      # C++ 运行时 (libstdc++)
-      stdenv.cc.cc.lib
+
     ];
   };
 }

@@ -88,8 +88,11 @@
       url = "https://github.com/ndfined-crp/ayugram-desktop/";
     };
 
+    # 锁到 9d70169：上游 nix-cache #22 已推送该 rev 的完整依赖链缓存（issue #117）。
+    # 升级：上游发新 v* tag（有缓存）时，改回 github:xifan2333/fcitx5-vinput
+    # 后跑 nix flake lock --update-input fcitx5-vinput，或直接 pin 到新 tag。
     fcitx5-vinput = {
-      url = "github:xifan2333/fcitx5-vinput";
+      url = "github:xifan2333/fcitx5-vinput/9d70169";
     };
 
     # 闪狐云 Lite 机场客户端(闭源 deb vendor 在仓库内,系统代理模式)

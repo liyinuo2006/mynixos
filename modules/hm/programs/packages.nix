@@ -38,13 +38,13 @@ in
 {
   home.packages = with pkgs; [
 
-    wechat-wrapped
-    qq
-    wps-wrapped
+    #  wechat-wrapped
+    # qq
+    #wps-wrapped
     google-chrome
 
     nautilus
-    motrix-next
+    #   motrix-next
 
     # Noctalia 模板主题依赖:GTK 基础主题 + Qt 配色工具
     adw-gtk3

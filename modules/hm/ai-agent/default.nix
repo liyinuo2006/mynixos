@@ -1,6 +1,6 @@
 _: {
   imports = [
-    # ./opencode.nix
+    ./opencode2.nix
     ./hermes.nix
   ];
 }

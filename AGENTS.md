@@ -51,8 +51,9 @@ Orion 的单机 NixOS flake，唯一配置输出是 `nixosConfigurations.mynixos
 
 - 根 `nixpkgs` 是 `nixos-unstable`；Home Manager、Zen beta 和 Spicetify 跟随根 nixpkgs。
   Noctalia 和 fcitx5-vinput 保持独立的 nixpkgs，AyuGram 使用带 submodules 的 Git input，不要擅自改这些关系。
-- `flake.nix` 的 `nixConfig` 内联声明了国内镜像与多个项目 cachix（noctalia、ayugram-desktop、tg-owt、
-  fcitx5-vinput）的 substituter 与 trusted-public-keys；新增带 cachix 缓存的包时需同步补上，否则构建会尝试官方源。
+- 缓存与信任密钥唯一维护点是 `modules/nixos/core/caches.nix`：`flake.nix` 的 `nixConfig` 与
+  `modules/nixos/core/nix.nix` 的 `nix.settings` 都从它读取；新增带 cachix 缓存的包时
+  只改这一个文件，否则构建会尝试官方源。
 - 涉及上游模块选项、包名或版本时，先用 websearch 查询当前资料，不要凭旧记忆猜测。
 - 用户执行系统切换：`sudo nixos-rebuild switch --flake .#mynixos`。
 - 用户更新输入：`nix flake update` 或 `nix flake lock --update-input <name>`。

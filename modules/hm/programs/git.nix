@@ -6,14 +6,31 @@ _: {
         name = "liyinuo2006";
         email = "orionli2006@gmail.com";
       };
-      # 新分支首次裸 push 自动建立上游跟踪，避免"没有对应的上游分支"报错
+
+      # 常见项：新分支裸 push 自动建上游、pull 走 rebase、fetch 清理已删分支引用
+      push.default = "simple";
       push.autoSetupRemote = true;
+      pull.rebase = true;
+      merge.conflictStyle = "zdiff3";
+      rerere.enabled = true;
+      rebase.autoStash = true;
+      fetch.prune = true;
+      init.defaultBranch = "main";
     };
   };
 
   # GitHub CLI：auth 后自动配置 git credential helper，push/pull 免密
   programs.gh = {
     enable = true;
-    settings.git_protocol = "https";
+    settings = {
+      git_protocol = "https";
+      # 关闭匿名使用数据上报（gh 2.97 默认 enabled）
+      telemetry = "disabled";
+      aliases = {
+        co = "pr checkout";
+        pv = "pr view";
+        prs = "pr status";
+      };
+    };
   };
 }

@@ -112,6 +112,13 @@
     # 保持独立 nixpkgs pin：llm-agents 内部 pin 自己的 nixpkgs-unstable，
     # 缓存与 CI 测试组合一一对应；升级用 nix flake lock --update-input llm-agents
     llm-agents.url = "github:numtide/llm-agents.nix";
+
+    # NUR(社区包仓库)：waydroid-script 转译层安装脚本来自
+    # repos.ataraxiasjel.waydroid-script（NixOS wiki 推荐用法）
+    nur = {
+      url = "github:nix-community/NUR";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
   outputs =

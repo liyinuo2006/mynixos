@@ -11,6 +11,7 @@
     ../../modules/nixos/wm
     ../../modules/nixos/security
     ../../modules/nixos/ai-agent
+    ../../modules/nixos/virtualisation
   ];
 
   home-manager = {

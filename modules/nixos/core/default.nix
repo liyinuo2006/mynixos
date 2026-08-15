@@ -12,5 +12,6 @@
     ./hardware.nix
     ./pipewire.nix
     ./removable-media.nix
+    ./btrfs-snapshots.nix
   ];
 }

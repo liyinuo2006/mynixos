@@ -44,7 +44,7 @@ in
     google-chrome
 
     nautilus
-    #   motrix-next
+    motrix-next
 
     # Noctalia 模板主题依赖:GTK 基础主题 + Qt 配色工具
     adw-gtk3
@@ -110,6 +110,7 @@ in
     usbutils # lsusb 等 USB 设备信息
     gdb # C/C++ 程序调试器
     ltrace # 跟踪程序库调用(strace 已由系统提供)
+    openssl
 
     # AyuGram:Telegram 增强客户端(Ghost Mode、防撤回等)
     inputs.ayugram-desktop.packages.${pkgs.stdenv.hostPlatform.system}.ayugram-desktop

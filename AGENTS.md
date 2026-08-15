@@ -15,6 +15,8 @@ Orion 的单机 NixOS flake，唯一配置输出是 `nixosConfigurations.mynixos
 - 入口链是 `flake.nix` → `hosts/vostro-3420/default.nix` → NixOS 模块与
   `home/orion/default.nix` → Home Manager 模块。
 - 各模块目录通过 `default.nix` 聚合导入；新增模块必须挂到对应聚合器，不能绕过 module system。
+- `modules/_trash/` 是废弃配置垃圾桶：不会被任何 default.nix 导入，扔进去的文件等系统切换
+  确认无误后再删；不要从里面 import 任何东西。
 - `modules/hm/common/` 是被模块直接 `import` 的共享数据，不是模块目录。
 
 ## 不可随意破坏的约定
@@ -51,9 +53,10 @@ Orion 的单机 NixOS flake，唯一配置输出是 `nixosConfigurations.mynixos
 
 - 根 `nixpkgs` 是 `nixos-unstable`；Home Manager、Zen beta 和 Spicetify 跟随根 nixpkgs。
   Noctalia 和 fcitx5-vinput 保持独立的 nixpkgs，AyuGram 使用带 submodules 的 Git input，不要擅自改这些关系。
-- 缓存与信任密钥唯一维护点是 `modules/nixos/core/caches.nix`：`flake.nix` 的 `nixConfig` 与
-  `modules/nixos/core/nix.nix` 的 `nix.settings` 都从它读取；新增带 cachix 缓存的包时
-  只改这一个文件，否则构建会尝试官方源。
+- 缓存与信任密钥唯一维护点是 `flake.nix` 的 `nixConfig`：flake 元数据只支持静态子集、
+  不能 import，所以字面写在 flake.nix，`modules/nixos/core/nix.nix` 通过
+  `(import ../../../flake.nix).nixConfig` 读取，两侧共用一份；新增带 cachix 缓存的包时
+  只改 flake.nix，否则构建会尝试官方源。
 - 涉及上游模块选项、包名或版本时，先用 websearch 查询当前资料，不要凭旧记忆猜测。
 - 用户执行系统切换：`sudo nixos-rebuild switch --flake .#mynixos`。
 - 用户更新输入：`nix flake update` 或 `nix flake lock --update-input <name>`。

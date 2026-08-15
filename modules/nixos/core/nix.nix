@@ -1,26 +1,26 @@
-  {
-    inputs,
-    config,
-    ...
-  }:
-  let
-    # 缓存与信任密钥统一从 caches.nix 读取，与 flake.nix 的 nixConfig 共用一份
-    caches = import ./caches.nix;
-  in
-  {
+{
+  inputs,
+  config,
+  ...
+}:
+let
+  # 缓存与信任密钥唯一维护点在 flake.nix 的 nixConfig
+  caches = (import ../../../flake.nix).nixConfig;
+in
+{
 
-    nix = {
+  nix = {
 
-      nixPath = [ "nixpkgs=${inputs.nixpkgs}" ];
+    nixPath = [ "nixpkgs=${inputs.nixpkgs}" ];
 
-      # GitHub token 由 sops 模板渲染后经 !include 引入（nix.conf 官方 include 特性）：
-      # access-tokens 只支持字面值（NixOS/nix#6536 未实现 file 读取），
-      # 模板路径引用 security/sops.nix 的 nix-access-tokens，token 明文不落 Nix store。
-      extraOptions = ''
-        !include ${config.sops.templates."nix-access-tokens".path}
-      '';
+    # GitHub token 由 sops 模板渲染后经 !include 引入（nix.conf 官方 include 特性）：
+    # access-tokens 只支持字面值（NixOS/nix#6536 未实现 file 读取），
+    # 模板路径引用 security/sops.nix 的 nix-access-tokens，token 明文不落 Nix store。
+    extraOptions = ''
+      !include ${config.sops.templates."nix-access-tokens".path}
+    '';
 
-      settings = {
+    settings = {
 
       experimental-features = [
         "nix-command"

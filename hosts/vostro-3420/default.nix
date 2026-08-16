@@ -7,12 +7,15 @@
     ./hardware-configuration.nix
     ../../modules/nixos/core
     ../../modules/nixos/programs
-    ../../modules/nixos/dm
-    ../../modules/nixos/wm
+    ../../modules/nixos/desktop
+    ../../modules/nixos/services
     ../../modules/nixos/security
-    ../../modules/nixos/ai-agent
     ../../modules/nixos/virtualisation
   ];
+
+  # deepseek-harness overlay：注入 pkgs.dsh scope（dsh、bundles.*、presets.*）。
+  # HM 因 useGlobalPkgs = true 自动继承，配合 modules/hm/ai-agent/dsh.nix 使用。
+  nixpkgs.overlays = [ inputs.deepseek-harness.overlays.default ];
 
   home-manager = {
     useGlobalPkgs = true;

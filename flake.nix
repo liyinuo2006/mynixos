@@ -24,6 +24,8 @@
       "https://hermes-agent.cachix.org"
       # llm-agents.nix（numtide 每日更新的 AI agent 包集合）
       "https://cache.numtide.com?priority=50"
+      # deepseek-harness（dsh）Nix 打包缓存
+      "https://deepseek-harness-nix.cachix.org"
     ];
     trusted-public-keys = [
       "cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY="
@@ -35,6 +37,8 @@
       # hermes-agent（Tier 2，缓存未必每 rev 都有；密钥经 GitHub 实配案例核实）
       "hermes-agent.cachix.org-1:jN3pjR50Mxi4SESKC/FIMNM6/LCosvPk2VUwzVvebzU="
       "niks3.numtide.com-1:DTx8wZduET09hRmMtKdQDxNNthLQETkc/yaX7M4qK0g="
+      # deepseek-harness（dsh）Nix 打包缓存
+      "deepseek-harness-nix.cachix.org-1:5NrkwLN9veNMhiINtU5ZeV4isXFhFsOwn6Ms7J1M+TA="
     ];
   };
 
@@ -101,7 +105,7 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
-    # Hermes Agent(ai agent,提供 nixosModules.default)
+    # Hermes Agent(ai agent,仅从它取包安装到 HM;NixOS 服务已废弃)
     # 保持独立 nixpkgs pin(与 noctalia/fcitx5-vinput 同惯例):Tier 2 flake,
     # 上游 main 可能破坏构建,用 flake.lock 锁定,升级时先查上游提交
     hermes-agent = {
@@ -112,6 +116,12 @@
     # 保持独立 nixpkgs pin：llm-agents 内部 pin 自己的 nixpkgs-unstable，
     # 缓存与 CI 测试组合一一对应；升级用 nix flake lock --update-input llm-agents
     llm-agents.url = "github:numtide/llm-agents.nix";
+
+    # deepseek-harness（dsh）的 Nix 打包：bundle/preset/profile 插件体系 + HM 模块
+    # 保持独立 nixpkgs pin（与 hermes/noctalia 同惯例）：Tier 2 flake，
+    # 上游 dsh 处于 developer preview 快速迭代期，用 flake.lock 锁定，
+    # 升级前先查上游提交再 nix flake lock --update-input deepseek-harness
+    deepseek-harness.url = "github:Moraxyc/deepseek-harness.nix";
 
     # NUR(社区包仓库)：waydroid-script 转译层安装脚本来自
     # repos.ataraxiasjel.waydroid-script（NixOS wiki 推荐用法）

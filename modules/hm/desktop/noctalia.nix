@@ -372,6 +372,11 @@
 
       # ===== 插件小组件 =====
       widget = {
+        # 显示 Status=Passive 的托盘项(如闪狐云 Lite 永远 Passive,默认会被隐藏;
+        # 对应 TOML [widget.tray] hide_passive,上游 commit cf0bf8d 加入)
+        tray = {
+          hide_passive = false;
+        };
         "nix-monitor" = {
           colorize_glyph = false;
           show_text = false;

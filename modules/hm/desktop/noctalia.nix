@@ -396,11 +396,6 @@
   # 原理：Noctalia 自动合并 ~/.config/noctalia/ 下所有 *.toml（docs.noctalia.dev/v5/configuration/），
   # sops 在 wallhaven.toml 处生成 symlink，指向 $XDG_RUNTIME_DIR/secrets.d/rendered/ 的真实文件
   sops = {
-    # 用户级解密密钥（orion 的编辑用 age 私钥）
-    age.keyFile = "/home/orion/.config/sops/age/keys.txt";
-    # 与系统模块共用同一加密文件（modules/nixos/security/.sops.yaml 的 path_regex 覆盖它）
-    defaultSopsFile = ../../nixos/security/secrets/api-key.yaml;
-    secrets."wallhaven-api-key" = { };
     # 用可读的占位符替换默认的 <SOPS:<sha256>:PLACEHOLDER>
     placeholder."wallhaven-api-key" = "{{ WALLHAVEN_API_KEY }}";
     templates."wallhaven.toml" = {

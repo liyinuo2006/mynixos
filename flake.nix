@@ -99,32 +99,19 @@
       url = "github:xifan2333/fcitx5-vinput/9d70169";
     };
 
-    # 闪狐云 Lite 机场客户端(闭源 deb vendor 在仓库内,系统代理模式)
     flashfox-lite = {
       url = "github:liyinuo2006/flashfox-lite-flake";
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
-    # Hermes Agent(ai agent,仅从它取包安装到 HM;NixOS 服务已废弃)
-    # 保持独立 nixpkgs pin(与 noctalia/fcitx5-vinput 同惯例):Tier 2 flake,
-    # 上游 main 可能破坏构建,用 flake.lock 锁定,升级时先查上游提交
     hermes-agent = {
       url = "github:NousResearch/hermes-agent";
     };
 
-    # llm-agents.nix：AI agent 包集合（numtide 维护，每日自动更新）
-    # 保持独立 nixpkgs pin：llm-agents 内部 pin 自己的 nixpkgs-unstable，
-    # 缓存与 CI 测试组合一一对应；升级用 nix flake lock --update-input llm-agents
     llm-agents.url = "github:numtide/llm-agents.nix";
 
-    # deepseek-harness（dsh）的 Nix 打包：bundle/preset/profile 插件体系 + HM 模块
-    # 保持独立 nixpkgs pin（与 hermes/noctalia 同惯例）：Tier 2 flake，
-    # 上游 dsh 处于 developer preview 快速迭代期，用 flake.lock 锁定，
-    # 升级前先查上游提交再 nix flake lock --update-input deepseek-harness
     deepseek-harness.url = "github:Moraxyc/deepseek-harness.nix";
 
-    # NUR(社区包仓库)：waydroid-script 转译层安装脚本来自
-    # repos.ataraxiasjel.waydroid-script（NixOS wiki 推荐用法）
     nur = {
       url = "github:nix-community/NUR";
       inputs.nixpkgs.follows = "nixpkgs";

@@ -1,8 +1,15 @@
-{ config, ... }:
 {
-  # sops 编辑密钥与系统解密密钥统一：家目录只留符号链接指向
-  # /var/lib/sops-nix/key.txt，不存第二份私钥副本。
-  # 旧的家目录实体副本会被 HM 改名为 keys.txt.hm-backup。
+  config,
+  ...
+}:
+{
   home.file.".config/sops/age/keys.txt".source =
     config.lib.file.mkOutOfStoreSymlink "/var/lib/sops-nix/key.txt";
+
+  sops = {
+    age.keyFile = "/var/lib/sops-nix/key.txt";
+    defaultSopsFile = ../../nixos/security/secrets/api-key.yaml;
+    secrets."dsh-env" = { };
+    secrets."wallhaven-api-key" = { };
+  };
 }

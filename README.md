@@ -17,7 +17,7 @@ Orion 的单机 NixOS 配置，Flake 仓库。
 ### 未被声明的部分
 
 1. wanxiang-lts-zh-hans ，万象语法模型（ https://github.com/amzxyz/RIME-LMDG/releases/download/LTS/wanxiang-lts-zh-hans.gram ） 需手动下载放在 ~/.local/share/fcitx5/rime/ 下。
-2. 浏览器 账户 cookie 相关数据: zen-browser google-chrome
+2. 浏览器 账户 cookie 相关数据: zen-browser google-chrome 
 3.
 - libvirt: 执行以下命令 nat 网络 ||
 sudo virsh net-start default  ||
@@ -34,3 +34,4 @@ waydroid prop set persist.waydroid.multi_windows true    # 多窗口模式（需
 4. ai 相关：hermes opencode2 dsh
 5. 机场账户 
 6. sops-nix 私钥放在/var/lib/sops-nix/key.txt
+7. fcitx5-vinput 的设置:豆包输入法

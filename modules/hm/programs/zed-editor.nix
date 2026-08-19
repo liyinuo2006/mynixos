@@ -3,12 +3,18 @@
 {
   programs.zed-editor = {
     enable = true;
-    extensions = [
-      "nix"
-    ];
+    defaultEditor = true;
+
     extraPackages = with pkgs; [
       nixd
       nixfmt
+    ];
+
+    extensions = [
+      "nix"
+      "html"
+      "git-firefly"
+      "toml"
     ];
 
     userSettings = {

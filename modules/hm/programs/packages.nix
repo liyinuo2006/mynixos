@@ -104,6 +104,7 @@ in
     eza # ls 替代,彩色输出/图标/树形
     direnv # 进入目录自动加载 .envrc/flake devShell 环境
     htop # 进程监控(与 btop 二选一,按习惯保留)
+    nix-output-monitor # nix build 输出实时监控(nom:下载/构建进度总览,配合 nixos-rebuild 管道使用)
     ncdu # 磁盘占用交互式分析
     tmux # 终端复用,会话保持/分屏
     pciutils # lspci 等 PCI 硬件信息

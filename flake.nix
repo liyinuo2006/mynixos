@@ -5,27 +5,27 @@
     substituters = [
       # 3个国内大学镜像(tuna 只镜像活跃 channel 的部分路径,
       # 其他 nixpkgs rev 的依赖要 SJTU/USTC 才有,所以全开)
-      "https://mirrors.tuna.tsinghua.edu.cn/nix-channels/store?priority=10"
+      #"https://mirrors.tuna.tsinghua.edu.cn/nix-channels/store?priority=10"
       #"https://mirror.sjtu.edu.cn/nix-channels/store?priority=20"
-      #"https://mirrors.ustc.edu.cn/nix-channels/store?priority=30"
+      "https://mirrors.ustc.edu.cn/nix-channels/store?priority=10"
       # 官方原站
       "https://cache.nixos.org?priority=40"
       # 社区缓存
       "https://nix-community.cachix.org?priority=45"
       # noctalia v5
-      "https://noctalia.cachix.org"
+      "https://noctalia.cachix.org?priority=50"
       # ayugram-desktop
-      "https://ayugram-desktop.cachix.org"
+      "https://ayugram-desktop.cachix.org?priority=50"
       # AyuGram 的 tg_owt 依赖
-      "https://tg-owt.cachix.org"
+      "https://tg-owt.cachix.org?priority=50"
       # fcitx5-vinput 语音输入
-      "https://fcitx5-vinput.cachix.org"
+      "https://fcitx5-vinput.cachix.org?priority=50"
       # hermes-agent（Tier 2，缓存未必每 rev 都有）
-      "https://hermes-agent.cachix.org"
+      "https://hermes-agent.cachix.org?priority=50"
       # llm-agents.nix（numtide 每日更新的 AI agent 包集合）
       "https://cache.numtide.com?priority=50"
       # deepseek-harness（dsh）Nix 打包缓存
-      "https://deepseek-harness-nix.cachix.org"
+      "https://deepseek-harness-nix.cachix.org?priority=50"
     ];
     trusted-public-keys = [
       "cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY="
@@ -92,11 +92,12 @@
       url = "https://github.com/ndfined-crp/ayugram-desktop/";
     };
 
-    # 锁到 9d70169：上游 nix-cache #22 已推送该 rev 的完整依赖链缓存（issue #117）。
-    # 升级：上游发新 v* tag（有缓存）时，改回 github:xifan2333/fcitx5-vinput
-    # 后跑 nix flake lock --update-input fcitx5-vinput，或直接 pin 到新 tag。
+    # 锁定 v2.3.8（befdde7）：上游自 v2.3.5 起在发布 tag 时自动跑 nix-cache，
+    # 该 tag 的构建已推送 fcitx5-vinput.cachix.org（nix-cache #25）。
+    # 升级：上游发新 v* tag 且 nix-cache 跑完后，直接 pin 到新 tag，
+    # 或改回 github:xifan2333/fcitx5-vinput 后跑 nix flake lock --update-input fcitx5-vinput。
     fcitx5-vinput = {
-      url = "github:xifan2333/fcitx5-vinput/9d70169";
+      url = "github:xifan2333/fcitx5-vinput/v2.3.8";
     };
 
     flashfox-lite = {

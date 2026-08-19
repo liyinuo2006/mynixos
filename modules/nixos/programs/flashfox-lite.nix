@@ -7,5 +7,8 @@
     inputs.flashfox-lite.nixosModules.default
   ];
 
-  programs.flashfox-lite.enable = true;
+  programs.flashfox-lite = {
+    enable = true;
+    enableTun = true;
+  };
 }

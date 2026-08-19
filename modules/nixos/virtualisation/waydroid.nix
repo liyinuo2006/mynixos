@@ -27,5 +27,14 @@
     # ARM 转译层：运行只发布 ARM 版的安卓应用（Intel CPU 用 libhoudini，AMD 用 libndk）
     # 用法：sudo waydroid-script → 选 Android 13 → Install → libhoudini
     pkgs.nur.repos.ataraxiasjel.waydroid-script
+    # 共享文件夹：把宿主目录 bind 挂载进容器（wiki: Mount host directories）
+    # 配套服务：systemctl --user start waydroid-monitor，再开 GUI 添加共享目录
+    pkgs.waydroid-helper
   ];
+
+  # waydroid-helper 的系统挂载服务（用户服务 waydroid-monitor 需登录后手动启动）
+  systemd = {
+    packages = [ pkgs.waydroid-helper ];
+    services.waydroid-mount.wantedBy = [ "multi-user.target" ];
+  };
 }

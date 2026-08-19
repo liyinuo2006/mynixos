@@ -35,3 +35,4 @@ waydroid prop set persist.waydroid.multi_windows true    # 多窗口模式（需
 5. 机场账户 
 6. sops-nix 私钥放在/var/lib/sops-nix/key.txt
 7. fcitx5-vinput 的设置:豆包输入法
+8. wallpaper 放在./ 下

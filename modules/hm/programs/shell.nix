@@ -10,8 +10,6 @@ _: {
       ll = "ls -lh";
       la = "ls -lha";
       "..." = "cd ../..";
-      f = "set -gx http_proxy http://127.0.0.1:7892; set -gx https_proxy http://127.0.0.1:7892; set -gx all_proxy http://127.0.0.1:7892; set -gx no_proxy 'localhost,127.0.0.1,::1'; echo '✅ 代理已开启'";
-      uf = "set -e http_proxy https_proxy all_proxy no_proxy; echo '❌ 代理已关闭'";
     };
 
   };

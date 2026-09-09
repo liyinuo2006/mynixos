@@ -69,14 +69,46 @@ Orion 的单机 NixOS flake，唯一配置输出是 `nixosConfigurations.mynixos
 ## 闪狐（flashfox-lite）
 
 - 来源：独立 flake `github:liyinuo2006/flashfox-lite-flake`（系统代理与 TUN 均已完整适配
-  NixOS，机制细节见其 README 与 TUN-RESEARCH.md；输入跟随根 nixpkgs）。
+  NixOS 且**可同时开启**，机制细节见其 README 与 TUN-RESEARCH.md（§15 3.0.6、§17 3.2.1 复盘）；
+  输入跟随根 nixpkgs）。当前版本 3.2.1（2026-09 升级，含 /opt bundle 迁移、librust_api、
+  libsecret、schema 目录、数据目录迁移五个适配点）。
 - 本仓库入口：`modules/nixos/programs/flashfox-lite.nix`（`enable = true; enableTun = true;`）。
-  升级/换版本只改 flake 输入，由用户执行 `nix flake lock --update-input flashfox-lite` + rebuild。
-- 运行时数据在 `~/.local/share/ffclient.app/`，由 GUI 管理（会整体重写），**不要手动编辑**
-  `shared_preferences.json`——尤其 `patchClashConfig.tun.device`（包内包装器在 GUI 每次启动前
-  自动幂等修正为 `Meta`，与防火墙 trustedInterfaces 约定一致）和 `log-level`。
+  升级/换版本流程：flashfox-lite-flake 上游先发布新 commit（按其 AGENTS.md 升级流程），
+  再改 flake 输入，由用户执行 `nix flake lock --update-input flashfox-lite` + rebuild。
+- 运行时数据在 `~/.local/share/com.ffclient.app/`（**3.2.1 起从 `ffclient.app` 迁移，
+  别写错目录**——曾致设备名修正失效、TUN 残留、系统代理 7892 国外全挂），由 GUI 管理
+  （会整体重写），**不要手动编辑** `shared_preferences.json`——尤其 `patchClashConfig.tun.device`
+  （包内包装器在 GUI 每次启动前自动幂等修正为 `Meta`，与防火墙 trustedInterfaces 约定一致）
+  和 `log-level`。
 - TUN 的提权与免密由上游 flake 模块自动完成（setuid wrapper + bind-mount + 假 sudo）：
   不要手动 chmod/chown core 文件，也不要停用 `flashfox-core-mount.service`。
 - 验证要点：开 TUN 不弹密码框、google/baidu 直连正常；`ip addr show Meta`；
-  `stat -c '%U:%G %A' /run/current-system/sw/share/FlashFoxLite/FlashFoxLiteCore`
-  应为 `root:root -rws--x--x`；关 TUN 时系统代理（127.0.0.1:7892）照常可用。
+  `stat -c '%U:%G %A' "$(readlink -f /run/current-system/sw/bin/flashfox-lite | xargs dirname | xargs dirname)/share/FlashFoxLite/FlashFoxLiteCore"`
+  应为 `root:root -rws--x--x`（老命令的 `/run/current-system/sw/share/...` 路径 3.2.1 已不存在）；
+  系统代理（127.0.0.1:7892）与 TUN 可同时使用、互不干扰；7892 走国外全挂时先查残留
+  `Meta` 接口/2022 路由表/9000-9010 ip rule（GUI 关 TUN 后 Core 残留会留着它们，
+  清理：`sudo ip link del Meta` + `sudo ip rule del pref 900x` + `sudo ip route flush table 2022`）。
+
+## MATLAB（R2020b，本地 FHS 包装）
+
+- 入口：`modules/nixos/programs/matlab.nix`（已在 `programs/default.nix` 聚合导入）。
+  MATLAB **不在 nixpkgs**，也不走 flake input——故意不挂 `nix-matlab`（上游已归档，且其
+  nixpkgs pin 会漂移）。用 `buildFHSEnv` 做启动器，本体由官方安装器命令式装在用户目录。
+- 安装形态：本体在 `~/MATLAB/R2020b`（官网 installer 初始化为用户目录、学校账号在线激活），
+  许可在 `~/.matlab/R2020b_licenses/`；`~/.config/matlab/nix.sh` 写
+  `INSTALL_DIR=$HOME/MATLAB/R2020b`（Nix/HM 都不托管，不会被 `*.hm-backup` 覆盖）。
+- 两个入口：`matlab-shell` 进 FHS 跑官网 `./install` 用；`matlab`/`matlab -desktop` 是日常启动。
+- 启动器已固化：`QT_QPA_PLATFORM=xcb` + `LD_PRELOAD=/lib/libstdc++.so` + `-softwareopengl`，
+  并后台 `wmname LG3D`。这些是修 Niri/Wayland 下**窗口空白**的，别当多余删掉。
+- 依赖清单按当前 nixos-unstable 修正过的点：用 `buildFHSEnv`（不是已删的 `buildFHSUserEnv`）；
+  `pkgs.xorg.*` 全换顶层小写新名（`libx11`、`libsm`…，xorg 包集已废弃）；`mesa` 不用 `mesa.drivers`；
+  `gtk2` 条件引入（存在才加）；显式加 `freetype` 盖掉 MATLAB 捆绑的旧版（否则 harfbuzz 报
+  `FT_Get_Color_Glyph_Layer` 未定义）。
+- 坑：安装器窗口不出来 → 把安装包 `bin/glnxa64`、`sys/os/glnxa64` 下的
+  `libstdc++.so.6*`/`libfreetype.so.6*` 改名 `.distlink` 再跑；装完后 GUI 空白同法处理。
+- 已知无效设置：`s.matlab.desktop.DisplayScaleFactor` 设小数（如 1.5）无效——R2020b 用 Java 8，
+  Linux 下只支持整数缩放。R2020b 在 Niri 内屏 `scale 1.5` 下界面发糊是 **XWayland 非整数缩放的
+  固有限制**：XWayland 给 MATLAB 逻辑 1280×720，Niri 再放大到 1080p。`Xft.dpi=144`
+  （`fcitx5-rime-ice.nix` 经 `xrdb` 注入）只影响字体，不改 `ScreenPixelsPerInch`。
+  根治要么把 `outputs.kdl` 的 scale 改 1，要么升 R2025a+（新版 WebGL/新 Java 对小数缩放更好）；
+  当前已接受现状，升级/改 scale 前先确认。

@@ -23,4 +23,11 @@
     enable = true;
     package = inputs.cua.packages.${pkgs.stdenv.hostPlatform.system}.cua-driver;
   };
+
+  # 开启 cua-driver 的原生 Wayland 后端（niri 是纯 Wayland，默认的 X11/XWayland 后端
+  # 枚举不到 niri 原生窗口 → “no on-screen window”，见 doctor 的 wayland_backend 提示）。
+  # 实测（0.22.0）：加此变量后列表窗口 ✓、zwlr_screencopy 原生截图 ✓、屏幕尺寸 ✓；
+  # 已知限制：list_windows 返回的 bounds 仍为 0x0、pid 为 null（上游 issue #1922）。
+  # 此变量仅在 cua-driver 内部生效，对本仓库其它部分无副作用。
+  environment.variables.CUA_DRIVER_RS_ENABLE_WAYLAND = "1";
 }

@@ -6,5 +6,6 @@
     ./cua-driver.nix
     ./packages.nix
     ./nautilus.nix
+    ./matlab.nix
   ];
 }

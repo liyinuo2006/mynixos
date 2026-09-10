@@ -92,14 +92,17 @@
       url = "https://github.com/ndfined-crp/ayugram-desktop/";
     };
 
-    # 锁定 v2.3.8（befdde7）：上游自 v2.3.5 起在发布 tag 时自动跑 nix-cache，
-    # 该 tag 的构建已推送 fcitx5-vinput.cachix.org（nix-cache #25）。
+    # 锁定 v2.3.25：上游自 v2.3.5 起在发布 tag 时自动跑 nix-cache，
+    # 该 tag 的构建已推送 fcitx5-vinput.cachix.org（nix-cache 2026-09-06 成功）。
     # 升级：上游发新 v* tag 且 nix-cache 跑完后，直接 pin 到新 tag，
     # 或改回 github:xifan2333/fcitx5-vinput 后跑 nix flake lock --update-input fcitx5-vinput。
     fcitx5-vinput = {
-      url = "github:xifan2333/fcitx5-vinput/v2.3.8";
+      url = "github:xifan2333/fcitx5-vinput/v2.3.25";
     };
 
+    # 3.2.1 已发布并验证(2026-09-10):数据目录迁 com.ffclient.app、librust_api、
+    # libsecret、schema 目录、GSETTINGS_SCHEMA_DIR 等适配点全部完成。
+    # 升级:上游发新版本后先按其 AGENTS.md 升级流程处理,再 lock --update-input。
     flashfox-lite = {
       url = "github:liyinuo2006/flashfox-lite-flake";
       inputs.nixpkgs.follows = "nixpkgs";

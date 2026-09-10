@@ -19,6 +19,9 @@ let
       dbus
       fontconfig
       gdk-pixbuf
+      # MATLAB 捆绑的旧 freetype(2.10)缺 FT_Get_Color_Glyph_Layer,与新版
+      # harfbuzz 冲突,需用 Nix 的新版 freetype 覆盖
+      freetype
       gst_all_1.gst-plugins-base
       gst_all_1.gstreamer
       gtk3
@@ -59,26 +62,30 @@ let
       libuuid
       libxcrypt
       libxcrypt-legacy
+
+      # MATLAB 空白修复：给窗口打 WM_NAME=LG3D hint 用
+      wmname
     ])
     # R2020b 仍可能用到 gtk2，nixpkgs 正在移除它，有才加，没有就跳过
     ++ lib.optional (builtins.hasAttr "gtk2" ps) ps.gtk2
-    ++ (with ps.xorg; [
-      libSM
-      libX11
+    # X11 库：顶层新名（xorg 包集已废弃，如 xorg.libX11 → libx11）
+    ++ (with ps; [
+      libsm
+      libx11
       libxcb
-      libXcomposite
-      libXcursor
-      libXdamage
-      libXext
-      libXfixes
-      libXft
-      libXi
-      libXinerama
-      libXrandr
-      libXrender
-      libXt
-      libXtst
-      libXxf86vm
+      libxcomposite
+      libxcursor
+      libxdamage
+      libxext
+      libxfixes
+      libxft
+      libxi
+      libxinerama
+      libxrandr
+      libxrender
+      libxt
+      libxtst
+      libxxf86vm
     ]);
 
   # 启动前读取命令式安装位置；matlab-shell 允许缺失（安装前还没有）。
@@ -140,11 +147,14 @@ in
       '';
       runScript = pkgs.writeScript "matlab-runner" (
         (runScriptPrefix { }) + ''
-          # 强制用 Nix 的新 libstdc++，盖掉 R2020b 自带的旧库，否则 GUI 易崩
+          # 强制用 Nix 的新 libstdc++，盖掉 R2020b 自带的旧库
+          # 后台给 MATLAB 窗口打 WM_NAME=LG3D 的 hint，修复无传统 WM 下的空白
+          # 固定 -softwareopengl，保证 Wayland/XWayland 下画面正常
+          ( sleep 6; wmname LG3D >/dev/null 2>&1 ) &
           exec env \
             LD_PRELOAD=/lib/libstdc++.so \
             LD_LIBRARY_PATH=/run/opengl-driver/lib/dri/ \
-            $INSTALL_DIR/bin/matlab "$@"
+            $INSTALL_DIR/bin/matlab -softwareopengl "$@"
         ''
       );
       meta.description = "MATLAB R2020b（命令式装到家目录，FHS 启动器）";

@@ -310,7 +310,7 @@
 
         # 壁纸/配色/字体变化时自动同步登录界面。
         # 强制走 pkexec 而非默认的 run0(shell 源码 resolvePrivilegeEscalator 是 run0 优先),
-        # 这样才能命中 polkit 规则 org.noctalia.greeter.apply-appearance 实现免弹窗
+        # 这样才能命中 polkit 规则 org.noctalia.greeter.sync-appearance 实现免弹窗
         greeter_sync = {
           auto_sync = true;
           privilege_command = "pkexec";

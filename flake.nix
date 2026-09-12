@@ -128,11 +128,6 @@
     # 避免 nixos-unstable 的 libspa/libei 漂移破坏该构建；升级走
     # `nix flake lock --update-input cua`。
     cua.url = "github:trycua/cua";
-
-    nur = {
-      url = "github:nix-community/NUR";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
   };
 
   outputs =

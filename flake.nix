@@ -109,7 +109,9 @@
     };
 
     hermes-agent = {
-      url = "github:NousResearch/hermes-agent";
+      # 钉到官方 release tag：v2026.9.11 = v0.21.2（2026-09-11 发布，state.db 可靠性修复）
+      # 好处：只吃官方发布，不吃 main 上未发布的提交（当时 main 领先 tag 88 个提交）
+      url = "github:NousResearch/hermes-agent/v2026.9.11";
     };
 
     llm-agents.url = "github:numtide/llm-agents.nix";

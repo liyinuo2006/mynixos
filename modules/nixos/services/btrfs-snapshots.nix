@@ -1,10 +1,12 @@
 { ... }:
 {
   services.btrbk.instances."btrbk" = {
-    onCalendar = "*-*-* 00/2:00:00"; # 每 2 小时整点拍一次
+    onCalendar = "*-*-* 00/6:00:00"; # 每 6 小时拍一次
     settings = {
-      snapshot_preserve_min = "1d"; # 最近 1 天无条件保留
-      snapshot_preserve = "3d"; # 总共只保留最近 3 天的快照
+      # 只无条件保留最新一个快照（btrbk 按整日算，"1d" 会多留一整天）
+      snapshot_preserve_min = "latest";
+      # 再按「每天第一个快照」保留 7 天，稳定后约 7~8 个
+      snapshot_preserve = "7d";
       volume."/" = {
         subvolume = "/home";
         snapshot_dir = "/snapshots"; # 复用已有 @snapshots 子卷

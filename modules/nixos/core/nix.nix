@@ -39,7 +39,7 @@ in
     gc = {
       automatic = true;
       dates = "03:15";
-      options = "--delete-older-than 7d";
+      options = "--delete-older-than 3d";
     };
 
     # 定期合并内容相同的 store 文件，节省磁盘空间。

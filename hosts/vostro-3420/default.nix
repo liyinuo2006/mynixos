@@ -10,7 +10,6 @@
     ../../modules/nixos/desktop
     ../../modules/nixos/services
     ../../modules/nixos/security
-    ../../modules/nixos/virtualisation
   ];
 
   # deepseek-harness overlay：注入 pkgs.dsh scope（dsh、bundles.*、presets.*）。

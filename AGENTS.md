@@ -38,7 +38,7 @@ Orion 的单机 NixOS flake，唯一配置输出是 `nixosConfigurations.mynixos
   不入仓库，新增壁纸直接放文件即可。
 - Niri 内屏当前 scale 是 `1.5`；fcitx5 的 XWayland 候选框依赖 `Xft.dpi = 144`。修改
   `outputs.kdl` 的 scale 时，必须同步检查 `fcitx5-rime-ice.nix` 与 `miscellaneous.kdl`。
-- fish 别名集中在 `modules/hm/programs/shell.nix`（`ll`/`la`/`...`/`f`/`uf`，其中 `f`/`uf` 开关 127.0.0.1:7892 系统代理）。
+- fish 别名集中在 `modules/hm/programs/shell.nix`（`ll`/`la`/`...`）。
 - system/home 的 `stateVersion` 都是 `"26.05"`，未明确理解迁移影响前不要修改。
 - `hosts/vostro-3420/hardware-configuration.nix` 由安装器生成，挂载 Btrfs 多子卷
   （`@`、`@home`、`@nix`、`@snapshots`、`@swap`）与 vfat ESP；修改前先备份。
@@ -66,28 +66,15 @@ Orion 的单机 NixOS flake，唯一配置输出是 `nixosConfigurations.mynixos
 - 用户执行系统切换：`sudo nixos-rebuild switch --flake .#mynixos`。
 - 用户更新输入：`nix flake update` 或 `nix flake lock --update-input <name>`。
 
-## 闪狐（flashfox-lite）
+## 代理软件（Clash Verge Rev）
 
-- 来源：独立 flake `github:liyinuo2006/flashfox-lite-flake`（系统代理与 TUN 均已完整适配
-  NixOS 且**可同时开启**，机制细节见其 README 与 TUN-RESEARCH.md（§15 3.0.6、§17 3.2.1 复盘）；
-  输入跟随根 nixpkgs）。当前版本 3.2.1（2026-09 升级，含 /opt bundle 迁移、librust_api、
-  libsecret、schema 目录、数据目录迁移五个适配点）。
-- 本仓库入口：`modules/nixos/programs/flashfox-lite.nix`（`enable = true; enableTun = true;`）。
-  升级/换版本流程：flashfox-lite-flake 上游先发布新 commit（按其 AGENTS.md 升级流程），
-  再改 flake 输入，由用户执行 `nix flake lock --update-input flashfox-lite` + rebuild。
-- 运行时数据在 `~/.local/share/com.ffclient.app/`（**3.2.1 起从 `ffclient.app` 迁移，
-  别写错目录**——曾致设备名修正失效、TUN 残留、系统代理 7892 国外全挂），由 GUI 管理
-  （会整体重写），**不要手动编辑** `shared_preferences.json`——尤其 `patchClashConfig.tun.device`
-  （包内包装器在 GUI 每次启动前自动幂等修正为 `Meta`，与防火墙 trustedInterfaces 约定一致）
-  和 `log-level`。
-- TUN 的提权与免密由上游 flake 模块自动完成（setuid wrapper + bind-mount + 假 sudo）：
-  不要手动 chmod/chown core 文件，也不要停用 `flashfox-core-mount.service`。
-- 验证要点：开 TUN 不弹密码框、google/baidu 直连正常；`ip addr show Meta`；
-  `stat -c '%U:%G %A' "$(readlink -f /run/current-system/sw/bin/flashfox-lite | xargs dirname | xargs dirname)/share/FlashFoxLite/FlashFoxLiteCore"`
-  应为 `root:root -rws--x--x`（老命令的 `/run/current-system/sw/share/...` 路径 3.2.1 已不存在）；
-  系统代理（127.0.0.1:7892）与 TUN 可同时使用、互不干扰；7892 走国外全挂时先查残留
-  `Meta` 接口/2022 路由表/9000-9010 ip rule（GUI 关 TUN 后 Core 残留会留着它们，
-  清理：`sudo ip link del Meta` + `sudo ip rule del pref 900x` + `sudo ip route flush table 2022`）。
+本机代理由 **Clash Verge Rev** 承担（`clash-verge-rev`）：混合端口 **7897**；
+TUN 设备名 **`Mihomo`**（`stack: gvisor`、`auto-route: true`）；
+数据在 `~/.local/share/io.github.clash-verge-rev.clash-verge-rev/`；订阅是赔钱机场（`dasho.pqjc.site`）。
+排查 TUN 时先看 `grep device ~/.local/share/io.github.clash-verge-rev.clash-verge-rev/config.yaml`。
+
+（原闪狐 FlashFox Lite 因机场跑路已于 2026-09 移除，配置快照见
+`modules/_trash/nixos/flashfox-lite.nix`。）
 
 ## MATLAB（R2020b，本地 FHS 包装）
 

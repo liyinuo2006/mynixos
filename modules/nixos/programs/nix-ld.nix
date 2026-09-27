@@ -4,7 +4,7 @@
 }:
 {
   # nix-ld：在 /lib64 等标准位置提供动态链接器，让未打包的动态链接二进制
-  # （如机场提供的 FlashFoxLite GUI、官网下载的 .tar.gz/AppImage 等）能直接在
+  # （官网下载的 .tar.gz/AppImage、第三方未打包 GUI 等）能直接在
   # NixOS 上运行。
   #
   # 机制（按 nix-ld 2.0.6 实测）：
@@ -153,8 +153,8 @@
       pciutils
       zenity
 
-      # ---- Flutter/GTK 类 GUI 的补充（FlashFoxLite GUI 走这条线）----
-      libsecret # 密钥环，FlashFoxLite 3.2.1 的适配点之一
+      # ---- Flutter/GTK 类 GUI 的补充（未打包的 Flutter/GTK 应用走这条线）----
+      libsecret # 密钥环，GTK 应用常用
       glib-networking # GTK 应用的 TLS / 系统代理
       libayatana-appindicator # 托盘图标
     ];

@@ -100,6 +100,14 @@
       url = "github:xifan2333/fcitx5-vinput/v2.3.26";
     };
 
+    # 3.2.1 已发布并验证(2026-09-10):数据目录迁 com.ffclient.app、librust_api、
+    # libsecret、schema 目录、GSETTINGS_SCHEMA_DIR 等适配点全部完成。
+    # 升级:上游发新版本后先按其 AGENTS.md 升级流程处理,再 lock --update-input。
+    flashfox-lite = {
+      url = "github:liyinuo2006/flashfox-lite-flake";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
     hermes-agent = {
       # 钉到官方 release tag：v2026.9.21 = v0.21.4（2026-09-21 发布，滚动汇总版，
       # 含 state.db/profile 隔离等一批修复；v2026.9.14 = v0.21.3 的远程 gateway 登录

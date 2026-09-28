@@ -7,5 +7,6 @@
     ./packages.nix
     ./nautilus.nix
     ./matlab.nix
+    ./kdeconnect.nix
   ];
 }

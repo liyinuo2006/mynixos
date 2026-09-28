@@ -9,5 +9,6 @@
     ./spotify.nix
     ./nautilus.nix
     ./obsidian.nix
+    ./phone-control.nix
   ];
 }

@@ -4,7 +4,7 @@
 {
   programs.clash-verge = {
     enable = true;
-    autoStart = false;
+    autoStart = true;
     tunMode = true;
     serviceMode = true;
     group = "wheel";

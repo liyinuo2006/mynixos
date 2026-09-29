@@ -9,5 +9,6 @@
     ./nautilus.nix
     ./matlab.nix
     ./kdeconnect.nix
+    ./astrbot.nix
   ];
 }

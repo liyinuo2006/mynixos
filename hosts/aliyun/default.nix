@@ -17,6 +17,7 @@
   networking.hostName = "aliyun";
   # 阿里云 VPC 走 DHCP，公网 IP 由 NAT 映射，无需 cloud-init 配网。
   networking.useDHCP = lib.mkDefault true;
+  time.timeZone = "Asia/Shanghai";
 
   # UEFI + 云上 NVRAM 可能不持久：用可移动回退路径 EFI/BOOT/BOOTX64.EFI。
   boot.loader.grub = {
@@ -28,12 +29,25 @@
 
   services.openssh = {
     enable = true;
-    settings.PermitRootLogin = "prohibit-password";
+    settings = {
+      # 仅密钥登录 root，关闭密码/交互认证
+      PermitRootLogin = "prohibit-password";
+      PasswordAuthentication = false;
+      KbdInteractiveAuthentication = false;
+    };
   };
 
   # 复用阿里云密钥对（私钥 ~/.ssh/aliyun.pem），装完后仍可用它登录。
   users.users.root.openssh.authorizedKeys.keys = [
     "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDnLPyOSX/kKEARUgBeGNbXej68d8akbLNxjPjGHWkjKYtY/iVEZFK6wYIpSUWH2WJadwEfQflYuAMQcdho++zTEXbjHS6PFT0QCElMR491VvTmqnNIBSSzh6D9ZUjTamBqD9rHXQSIQNhYYMdZoMLj6MIxFzG+Qebeo/2HKdhS9D+dgpA/ymsvMf4CXUrViGpXT3DmIhN7WWEmyz/5LJRy2XlB1P61FI/4lWL9YEmn2PSeIEUn1N9i5g1ozd+DGO/xVh7pBCvv7ynJc+3hxjue44JsuyIUZMEwwkRWuoso3y0lN/icmxfT2yGSXyqr2FT6MuAl70FgLVeAYRzGthij aliyun-ecs"
+  ];
+
+  # 内存偏紧（~1.8GiB），加 2GiB swapfile 兜底，避免构建/运行 OOM。
+  swapDevices = [
+    {
+      device = "/var/swapfile";
+      size = 2048;
+    }
   ];
 
   services.qemuGuest.enable = true;
@@ -60,6 +74,14 @@
     ];
     auto-optimise-store = false;
   };
+
+  # 定期回收 store，避免 40G 系统盘被历史 generation 撑满。
+  nix.gc = {
+    automatic = true;
+    dates = "weekly";
+    options = "--delete-older-than 14d";
+  };
+  nix.optimise.automatic = true;
 
   system.stateVersion = "26.05";
 }

@@ -1,7 +1,8 @@
 # AGENTS.md — mynixos
 
-Orion 的单机 NixOS flake，唯一配置输出是 `nixosConfigurations.mynixos`，硬件目录是
-`hosts/vostro-3420/`。
+Orion 的 NixOS flake，有两个配置输出：`nixosConfigurations.mynixos`（本机 vostro-3420 桌面）
+与 `nixosConfigurations.aliyun`（阿里云 ECS 精简服务器，由 nixos-anywhere 安装）。
+硬件目录分别是 `hosts/vostro-3420/`、`hosts/aliyun/`。
 
 ## 硬性规则
 
@@ -20,6 +21,10 @@ Orion 的单机 NixOS flake，唯一配置输出是 `nixosConfigurations.mynixos
 
 - 入口链是 `flake.nix` → `hosts/vostro-3420/default.nix` → NixOS 模块与
   `home/orion/default.nix` → Home Manager 模块。
+- `hosts/aliyun/` 是云主机 host（`nixosConfigurations.aliyun`），只 import 自己的
+  `hardware-configuration.nix`、`disk-config.nix` 与 disko 模块，**不复用桌面模块**；
+  它是 nixos-anywhere 装出来的，改配置后用
+  `nixos-rebuild switch --flake .#aliyun --target-host root@<IP>`（用户执行）。
 - 各模块目录通过 `default.nix` 聚合导入；新增模块必须挂到对应聚合器，不能绕过 module system。
 - `modules/_trash/` 是废弃配置垃圾桶：不会被任何 default.nix 导入，扔进去的文件等系统切换
   确认无误后再删；不要从里面 import 任何东西。
@@ -38,7 +43,8 @@ Orion 的单机 NixOS flake，唯一配置输出是 `nixosConfigurations.mynixos
   不入仓库，新增壁纸直接放文件即可。
 - Niri 内屏当前 scale 是 `1.5`；fcitx5 的 XWayland 候选框依赖 `Xft.dpi = 144`。修改
   `outputs.kdl` 的 scale 时，必须同步检查 `fcitx5-rime-ice.nix` 与 `miscellaneous.kdl`。
-- fish 别名集中在 `modules/hm/programs/shell.nix`（`ll`/`la`/`...`/`f`/`uf`，其中 `f`/`uf` 开关 127.0.0.1:7892 系统代理）。
+- fish 别名在 `modules/hm/programs/shell.nix`，目前只有 `ll`/`la`/`...`；文档旧版提到的
+  `f`/`uf` 代理开关在当前仓库中并不存在，CLI 走代理需手动导出 `https_proxy`/`http_proxy`。
 - system/home 的 `stateVersion` 都是 `"26.05"`，未明确理解迁移影响前不要修改。
 - `hosts/vostro-3420/hardware-configuration.nix` 由安装器生成，挂载 Btrfs 多子卷
   （`@`、`@home`、`@nix`、`@snapshots`、`@swap`）与 vfat ESP；修改前先备份。
@@ -80,7 +86,9 @@ Orion 的单机 NixOS flake，唯一配置输出是 `nixosConfigurations.mynixos
 
 要点：
 
-- `f`/`uf` 别名开关的是 **7892（闪狐）** 的系统代理，与 Clash 的 7897 无关；闪狐不开时 7892 不监听属正常。
+- 闪狐的系统代理是 **7892**，与 Clash 的 7897 无关；闪狐不开时 7892 不监听属正常。
+  注意 7892 是"系统代理"，只对浏览器/GUI 生效，`gh`/`curl`/`git` 不读取它，需手动
+  `export https_proxy=http://127.0.0.1:7892`。
 - 两个 TUN **不要同时开**：闪狐 `auto-route: false`、Clash `auto-route: true`，会争抢全局路由。
 - **设备名撞车坑**：mihomo 内核默认 TUN 设备名就是 `Meta`；Clash Verge 的 TUN 设置对话框里
   "虚拟网卡名称"默认显示 `Mihomo` 但**只有点"保存"才会写进 `config.yaml` 的 `tun.device`**，

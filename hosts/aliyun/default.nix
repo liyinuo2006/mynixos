@@ -11,6 +11,7 @@
   imports = [
     ./hardware-configuration.nix
     ./disk-config.nix
+    ./astrbot.nix
     inputs.disko.nixosModules.disko
   ];
 

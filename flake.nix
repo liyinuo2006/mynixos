@@ -120,6 +120,12 @@
 
     deepseek-harness.url = "github:Moraxyc/deepseek-harness.nix";
 
+    # disko：nixos-anywhere 依赖它做声明式分区（aliyun 云主机用，见 hosts/aliyun/）。
+    disko = {
+      url = "github:nix-community/disko";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
     # cua-driver：Computer Use 后台桌面驱动（trycua/cua）。
     # 为何用 Nix 构建版而非官方 curl|bash 版：curl|bash 发布的二进制把
     # portal-libei（Wayland 输入）feature-gate 关掉了，在 niri（纯 Wayland）上
@@ -146,6 +152,12 @@
           ./hosts/vostro-3420
           home-manager.nixosModules.home-manager
         ];
+      };
+
+      # 阿里云 ECS 云主机（精简服务器系统，由 nixos-anywhere 安装）
+      nixosConfigurations.aliyun = nixpkgs.lib.nixosSystem {
+        specialArgs = { inherit inputs; };
+        modules = [ ./hosts/aliyun ];
       };
     };
 }

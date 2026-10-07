@@ -17,6 +17,7 @@ rustPlatform.buildRustPackage {
 
   inherit src;
   cargoRoot = "apps/cli";
+  buildAndTestSubdir = "apps/cli";
   cargoLock.lockFile = "${src}/apps/cli/Cargo.lock";
   cargoBuildFlags = [ "--bin" "operit2" ];
   nativeBuildInputs = [ rustPlatform.bindgenHook ];

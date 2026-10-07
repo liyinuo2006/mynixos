@@ -7,7 +7,7 @@
   python3,
   gitMinimal,
   nodejs,
-  typescript,
+  typescript_5,
   pkg-config,
   cmake,
   ninja,
@@ -15,6 +15,7 @@
   gtk3,
   webkitgtk_4_1,
   gst_all_1,
+  xrandr,
   glib-networking,
   libsecret,
   xz,
@@ -38,7 +39,7 @@ let
       gitMinimal
       nodejs
       python3
-      typescript
+      typescript_5
     ];
 
     postPatch = ''
@@ -74,13 +75,26 @@ let
     buildAndTestSubdir = "apps/flutter/native/operit-flutter-bridge";
     cargoLock.lockFile = "${src}/apps/flutter/native/operit-flutter-bridge/Cargo.lock";
     cargoBuildFlags = [ "--lib" ];
-    nativeBuildInputs = [ rustPlatform.bindgenHook ];
+    nativeBuildInputs = [
+      python3
+      rustPlatform.bindgenHook
+    ];
     doCheck = false;
 
     postPatch = ''
       python3 ${patchSource} "$PWD"
       mkdir -p core/crates/runtime/application/assets/plugins
       cp -a ${pluginAssets}/plugins/buildin core/crates/runtime/application/assets/plugins/buildin
+    '';
+
+    postInstall = ''
+      mkdir -p "$out/share/operit2/dart-proxy"
+      install -m644 \
+        apps/flutter/app/lib/core/proxy/generated/CoreProxyClients.g.dart \
+        "$out/share/operit2/dart-proxy/CoreProxyClients.g.dart"
+      install -m644 \
+        apps/flutter/app/lib/core/proxy/generated/CoreProxyModels.g.dart \
+        "$out/share/operit2/dart-proxy/CoreProxyModels.g.dart"
     '';
   };
 
@@ -110,11 +124,11 @@ flutter341.buildFlutterApplication {
     copyDesktopItems
     gitMinimal
     ninja
-    nodejs
     pkg-config
     python3
-    typescript
   ];
+  # Flutter 自己在 buildPhase 中调用 CMake，禁用 stdenv 的通用 CMake configure hook。
+  dontUseCmakeConfigure = true;
 
   buildInputs = [
     flutterBridge
@@ -136,9 +150,14 @@ flutter341.buildFlutterApplication {
   };
 
   postPatch = ''
-    python3 ${patchSource} "$PWD/../../.."
-    mkdir -p ../../../core/crates/runtime/application/assets/plugins
-    cp -a ${pluginAssets}/plugins/buildin ../../../core/crates/runtime/application/assets/plugins/buildin
+    python3 ${patchSource} "$PWD/../../.." --cmake-only
+    mkdir -p lib/core/proxy/generated
+    install -m644 \
+      ${flutterBridge}/share/operit2/dart-proxy/CoreProxyClients.g.dart \
+      lib/core/proxy/generated/CoreProxyClients.g.dart
+    install -m644 \
+      ${flutterBridge}/share/operit2/dart-proxy/CoreProxyModels.g.dart \
+      lib/core/proxy/generated/CoreProxyModels.g.dart
   '';
 
   postInstall = ''
@@ -149,6 +168,7 @@ flutter341.buildFlutterApplication {
   '';
 
   extraWrapProgramArgs = ''
+    --prefix PATH : "${lib.makeBinPath [ xrandr ]}" \
     --prefix GST_PLUGIN_SYSTEM_PATH_1_0 : "${lib.makeSearchPath "lib/gstreamer-1.0" gstPlugins}" \
     --set GST_PLUGIN_SCANNER "${gst_all_1.gstreamer}/libexec/gstreamer-1.0/gst-plugin-scanner"
   '';

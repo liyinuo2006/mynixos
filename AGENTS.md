@@ -6,10 +6,13 @@ Orion 的 NixOS flake，有两个配置输出：`nixosConfigurations.mynixos`（
 
 ## 硬性规则
 
-- OpenCode 在任何时候都不得手动运行 Nix 求值、诊断、格式化或构建验证：包括 `nix eval`、
-  `nix-instantiate`、`nix repl` 和 `nixos-rebuild`。最终切换由用户执行。
+- OpenCode 不得手动运行 Nix 求值、格式化或构建验证：包括 `nix eval`、`nix-instantiate`、
+  `nix repl`、`nix build` 和 `nixos-rebuild`。最终切换由用户执行。
+- 用户明确授权排查其自行触发的构建时，允许只读运行 `nix log <drv>` 查看已有 derivation 日志；
+  不得借此启动新的求值、构建或系统切换。
 - 必要可用新版 `nix` 命令（如 `nix shell`/`nix run`）临时下载并使用工具/包，
-  但不得用它们对本仓库做求值、诊断或构建验证；临时环境用完即弃，不写进配置。
+  除上一条允许的 `nix log` 外，不得用它们对本仓库做求值、诊断或构建验证；
+  临时环境用完即弃，不写进配置。
 - 访问 GitHub 一律用 `gh` 或 `git`（已配置认证，额度 5000 次/小时），**禁止用裸 `curl`**
   请求 GitHub API/raw 内容（未认证限 60 次/小时，会迅速触发限流）；需要看上游仓库的
   README/源码/发布信息时用 `gh repo view`、`gh api` 或浅克隆（`--depth 1 --sparse`）。

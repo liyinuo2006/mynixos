@@ -12,8 +12,15 @@
     ./hardware-configuration.nix
     ./disk-config.nix
     ./astrbot.nix
+    inputs.operit2.nixosModules.link
     inputs.disko.nixosModules.disko
   ];
+
+  # Operit2 Link 节点（包与模块来自 operit2-flake）。
+  # 放行规则等确定网络方案后再补：openFirewallOn = [ "<网卡>" ] 或 openFirewallPublic = true。
+  services.operit2-link = {
+    enable = true;
+  };
 
   networking.hostName = "aliyun";
   # 阿里云 VPC 走 DHCP，公网 IP 由 NAT 映射，无需 cloud-init 配网。

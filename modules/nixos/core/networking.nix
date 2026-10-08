@@ -12,4 +12,5 @@
     firewall.checkReversePath = "loose";
   };
 
+  # Operit2 的打包与 Link 服务来自 operit2-flake（见 hosts/*/default.nix）。
 }

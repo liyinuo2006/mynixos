@@ -126,6 +126,14 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
+    # Operit2 打包：独立 flake，已发布 https://github.com/liyinuo2006/operit2-flake。
+    # 本地开发期间直接用 path；稳定后改成 github:liyinuo2006/operit2-flake
+    # 并 `nix flake update operit2`。
+    operit2 = {
+      url = "path:/home/orion/mygithub/operit2-flake";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
     # cua-driver：Computer Use 后台桌面驱动（trycua/cua）。
     # 为何用 Nix 构建版而非官方 curl|bash 版：curl|bash 发布的二进制把
     # portal-libei（Wayland 输入）feature-gate 关掉了，在 niri（纯 Wayland）上

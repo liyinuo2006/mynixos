@@ -22,7 +22,10 @@
     backupFileExtension = "hm-backup";
     extraSpecialArgs = { inherit inputs; }; # 在 hm 中使用 flake 的 inputs 参数
     # 注册 sops-nix 的 Home Manager 模块（noctalia 密钥等用户级解密用）
-    sharedModules = [ inputs.sops-nix.homeManagerModules.sops ];
+    sharedModules = [
+      inputs.sops-nix.homeManagerModules.sops
+      inputs.operit2.homeModules.default
+    ];
     users.orion = import ../../home/orion;
   };
 

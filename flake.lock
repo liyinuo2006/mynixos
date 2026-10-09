@@ -508,6 +508,23 @@
         "type": "github"
       }
     },
+    "operit2": {
+      "inputs": {
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1791474016,
+        "narHash": "sha256-W5PwKN3wSCgg1yjO7TeQYcBtUoIMNPHcqkTL0YWwql4=",
+        "path": "/home/orion/mygithub/operit2-flake",
+        "type": "path"
+      },
+      "original": {
+        "path": "/home/orion/mygithub/operit2-flake",
+        "type": "path"
+      }
+    },
     "pyproject-build-systems": {
       "inputs": {
         "nixpkgs": [
@@ -572,6 +589,7 @@
         "nixpkgs": "nixpkgs_7",
         "noctalia": "noctalia",
         "noctalia-greeter": "noctalia-greeter",
+        "operit2": "operit2",
         "sops-nix": "sops-nix",
         "spicetify-nix": "spicetify-nix",
         "zen-browser": "zen-browser"

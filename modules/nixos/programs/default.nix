@@ -9,6 +9,7 @@
     ./nautilus.nix
     ./matlab.nix
     ./kdeconnect.nix
+    ./easytier.nix
     # astrbot 已迁到云主机，见 hosts/aliyun/astrbot.nix
   ];
 }

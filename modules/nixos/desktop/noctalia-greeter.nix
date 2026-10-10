@@ -5,7 +5,7 @@
     inputs.noctalia-greeter.nixosModules.default
   ];
 
-  programs.noctalia-greeter = {
+  services.displayManager.noctalia-greeter = {
     enable = true;
 
     # 完整声明式 greeter.toml，每次激活时经 tmpfiles L+ 覆盖写入

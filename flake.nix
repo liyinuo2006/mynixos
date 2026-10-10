@@ -166,5 +166,11 @@
         specialArgs = { inherit inputs; };
         modules = [ ./hosts/aliyun ];
       };
+
+      # AWS EC2 云主机（精简服务器系统，由 nixos-anywhere 安装）
+      nixosConfigurations.aws = nixpkgs.lib.nixosSystem {
+        specialArgs = { inherit inputs; };
+        modules = [ ./hosts/aws ];
+      };
     };
 }

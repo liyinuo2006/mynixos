@@ -1,8 +1,9 @@
 # AGENTS.md — mynixos
 
-Orion 的 NixOS flake，有两个配置输出：`nixosConfigurations.mynixos`（本机 vostro-3420 桌面）
-与 `nixosConfigurations.aliyun`（阿里云 ECS 精简服务器，由 nixos-anywhere 安装）。
-硬件目录分别是 `hosts/vostro-3420/`、`hosts/aliyun/`。
+Orion 的 NixOS flake，有三个配置输出：`nixosConfigurations.mynixos`（本机 vostro-3420 桌面）、
+`nixosConfigurations.aliyun`（阿里云 ECS）与 `nixosConfigurations.aws`（AWS EC2），
+后两者是精简服务器、由 nixos-anywhere 安装。
+硬件目录分别是 `hosts/vostro-3420/`、`hosts/aliyun/`、`hosts/aws/`。
 
 ## 硬性规则
 
@@ -28,6 +29,9 @@ Orion 的 NixOS flake，有两个配置输出：`nixosConfigurations.mynixos`（
   `hardware-configuration.nix`、`disk-config.nix` 与 disko 模块，**不复用桌面模块**；
   它是 nixos-anywhere 装出来的，改配置后用
   `nixos-rebuild switch --flake .#aliyun --target-host aliyun-ecs`（用户执行）。
+- `hosts/aws/` 同理（`nixosConfigurations.aws`，AWS EC2）。差异：根卷是 NVMe
+  `/dev/nvme0n1`、安装时以 `ubuntu` 用户登录（装完为 root）、缓存官方源优先；
+  重建用 `nixos-rebuild switch --flake .#aws --target-host aws-ec2`（用户执行）。
 - `--target-host` 是“本机构建、拷贝到远端”，**GC root 建在远端**，本机这份闭包无根，
   会被本机 nightly `nix.gc`（`--delete-older-than 3d`）回收，导致每次重建 aliyun 又把
   只属于它的包（如 `operit2-cli`）重编。做法：在本机保留一个 root：
@@ -76,9 +80,27 @@ Orion 的 NixOS flake，有两个配置输出：`nixosConfigurations.mynixos`（
   不能 import，所以字面写在 flake.nix，`modules/nixos/core/nix.nix` 通过
   `(import ../../../flake.nix).nixConfig` 读取，两侧共用一份；新增带 cachix 缓存的包时
   只改 flake.nix，否则构建会尝试官方源。
-- 涉及上游模块选项、包名或版本时，先用 websearch 查询当前资料，不要凭旧记忆猜测。
+- 涉及 nixpkgs 包名、上游模块选项或版本时，**优先用 `nixos` MCP 查询**（见"Nix 查询（mcp-nixos
+  远程 MCP）"一节），不要凭旧记忆猜测；MCP 查不到再退回 websearch。
 - 用户执行系统切换：`sudo nixos-rebuild switch --flake .#mynixos`。
 - 用户更新输入：`nix flake update` 或 `nix flake lock --update-input <name>`。
+
+## Nix 查询（mcp-nixos 远程 MCP）
+
+- 涉及 nixpkgs 包名、NixOS / Home Manager / nix-darwin / nixvim / NVF 选项、flake、二进制缓存
+  或版本历史时，**优先直接用 `nixos` MCP 工具查询**：`tools.nixos.nix(...)`（search/info/stats/
+  browse/channels/cache 等）与 `tools.nixos.nix_versions(...)`；结果实时、比旧记忆或 websearch 准。
+  查不到或工具不可用时再退回 websearch。
+- 它是**远程 MCP**：server 常驻在阿里云 ECS，客户端经 EasyTier 覆盖网访问。本机 OpenCode 配置是
+  用户级文件 `~/.config/opencode/opencode.json`（`type: "remote"`、
+  `url: "http://10.144.144.1:8000/mcp"`、`oauth: false`，**不入仓库**），改动后需重启 OpenCode 生效。
+- 服务端在 `hosts/aliyun/mcp-nixos.nix`：`mcp-nixos` 以 HTTP transport（stateless）跑成 systemd
+  `mcp-nixos.service`，只绑 EasyTier 网卡 `10.144.144.1:8000`，防火墙仅对 `tun0` 放行。
+  该 server **无内置鉴权**，且 `store`/`flake-inputs` 动作能读所在机器的 `/nix/store`，
+  所以**绝不能把 `MCP_NIXOS_HOST` 改成 `0.0.0.0`**，也不要对公网开放端口。
+- 使用前提：设备需先连上 EasyTier 网络（`ctmiop`）才能访问。改完 `hosts/aliyun/` 后由用户执行
+  `nixos-rebuild switch --flake .#aliyun --target-host aliyun-ecs`（见"配置入口"的 GC root 提醒）。
+- 已知限制：服务器上 `api.github.com` 被限速，`channels` 这类动作可能超时；其余查询正常。
 
 ## 代理软件（两套，互相独立）
 

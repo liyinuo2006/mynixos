@@ -126,11 +126,10 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
-    # Operit2 打包：独立 flake，已发布 https://github.com/liyinuo2006/operit2-flake。
-    # 本地开发期间直接用 path；稳定后改成 github:liyinuo2006/operit2-flake
-    # 并 `nix flake update operit2`。
+    # Operit2 打包：独立 flake，按发布提交锁定。
+    # 上游改动 push 后，用 `nix flake update operit2` 升级。
     operit2 = {
-      url = "path:/home/orion/mygithub/operit2-flake";
+      url = "github:liyinuo2006/operit2-flake";
       inputs.nixpkgs.follows = "nixpkgs";
     };
 

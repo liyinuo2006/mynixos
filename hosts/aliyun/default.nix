@@ -14,6 +14,7 @@
     ./disk-config.nix
     ./astrbot.nix
     ./sops.nix
+    ./mcp-nixos.nix
     inputs.operit2.nixosModules.link
     inputs.disko.nixosModules.disko
   ];
@@ -24,6 +25,13 @@
     enable = true;
     # 服务器只有一个 root 用户，节点即以 root 运行（linux.root 为 Satisfied）。
     user = "root";
+    # 只在 EasyTier 网卡上放行，供其它设备配对/同步连接到本节点。
+    openFirewallOn = [ "tun0" ];
+    # GUI 手动配对只支持 HTTP/WebSocket（不能与 tcp 共用端口）。
+    transports = [
+      "http"
+      "ws"
+    ];
   };
 
   # EasyTier 组网锚点：本机有公网 IP，作为中心节点，本机与手机都连它。

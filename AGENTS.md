@@ -27,7 +27,12 @@ Orion 的 NixOS flake，有两个配置输出：`nixosConfigurations.mynixos`（
 - `hosts/aliyun/` 是云主机 host（`nixosConfigurations.aliyun`），只 import 自己的
   `hardware-configuration.nix`、`disk-config.nix` 与 disko 模块，**不复用桌面模块**；
   它是 nixos-anywhere 装出来的，改配置后用
-  `nixos-rebuild switch --flake .#aliyun --target-host root@<IP>`（用户执行）。
+  `nixos-rebuild switch --flake .#aliyun --target-host aliyun-ecs`（用户执行）。
+- `--target-host` 是“本机构建、拷贝到远端”，**GC root 建在远端**，本机这份闭包无根，
+  会被本机 nightly `nix.gc`（`--delete-older-than 3d`）回收，导致每次重建 aliyun 又把
+  只属于它的包（如 `operit2-cli`）重编。做法：在本机保留一个 root：
+  `nix build .#nixosConfigurations.aliyun.config.system.build.toplevel -o ~/nixos-aliyun`。
+  替代方案是 `--build-host aliyun-ecs`（在服务器构建、复用服务器 store，但受云主机内存限制）。
 - 各模块目录通过 `default.nix` 聚合导入；新增模块必须挂到对应聚合器，不能绕过 module system。
 - `modules/_trash/` 是废弃配置垃圾桶：不会被任何 default.nix 导入，扔进去的文件等系统切换
   确认无误后再删；不要从里面 import 任何东西。
